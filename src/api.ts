@@ -1,5 +1,7 @@
 import type { Bridge, Snapshot } from './types';
 const initial: Snapshot = {
+  activePlaylistId: 'default',
+  playlists: [{ id: 'default', name: '默认播放列表', count: 0 }],
   cloudSync: {
     ownerMid: 0,
     folderId: 0,
@@ -35,6 +37,11 @@ const desktopOnly = async (): Promise<never> => {
 export const api: Bridge = window.bilidesk || {
   platform: 'web',
   bootstrap: async () => initial,
+  createPlaylist: desktopOnly,
+  activatePlaylist: desktopOnly,
+  renamePlaylist: desktopOnly,
+  deletePlaylist: desktopOnly,
+  createFolder: desktopOnly,
   add: desktopOnly,
   remove: desktopOnly,
   reorder: desktopOnly,

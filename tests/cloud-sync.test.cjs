@@ -50,6 +50,28 @@ function fixture() {
     saves: () => saved,
   };
 }
+test('closing a playlist during configuration leaves its target unchanged', async () => {
+  const { service, client, library } = fixture();
+  const original = library.cloudSync;
+  client.favorites = async () => {
+    service.close();
+    return { info: { id: 456, ownerMid: 123, title: 'other' } };
+  };
+  await assert.rejects(service.configure({ folderId: 456, enabled: true }), /切换/);
+  assert.equal(library.cloudSync, original);
+  assert.equal(library.cloudSync.enabled, false);
+});
+test('closing old playlist during metadata resolution prevents remaining writes', async () => {
+  const { service, client, library, writes } = fixture();
+  library.playlist = [{ bvid: bvs[1] }];
+  client.resolve = async (bvid) => {
+    service.close();
+    return video(bvid);
+  };
+  await service.sync();
+  assert.deepEqual(writes, []);
+  assert.equal(service.timer, null);
+});
 test('cloud sync is opt-in and validates owned destination before enabling', async () => {
   assert.equal(normalizeCloudSync().enabled, false);
   assert.equal(normalizeCloudSync({ enabled: true }).enabled, false);

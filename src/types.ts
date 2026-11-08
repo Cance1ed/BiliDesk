@@ -32,6 +32,8 @@ export interface Profile {
   avatar: string;
 }
 export interface Snapshot {
+  activePlaylistId: string;
+  playlists: { id: string; name: string; count: number }[];
   cloudSync: CloudSyncState;
   subscriptions: Subscription[];
   playlist: Video[];
@@ -98,7 +100,12 @@ export interface SubscriptionDiscovery {
 export interface Bridge {
   platform: string;
   bootstrap(): Promise<Snapshot>;
-  add(text: string): Promise<AddResult>;
+  createPlaylist(name: string, copy?: boolean): Promise<void>;
+  activatePlaylist(id: string): Promise<void>;
+  renamePlaylist(id: string, name: string): Promise<void>;
+  deletePlaylist(id: string): Promise<void>;
+  createFolder(value: { title: string; private: boolean }, playlistId: string): Promise<Folder>;
+  add(text: string, playlistId?: string): Promise<AddResult>;
   remove(id: string): Promise<void>;
   reorder(id: string, direction: number): Promise<void>;
   settings(value: Settings): Promise<Snapshot>;
@@ -112,9 +119,9 @@ export interface Bridge {
     ownerMid: number,
     page: number,
   ): Promise<{ title: string; hasMore: boolean; videos: Favorite[] }>;
-  configureCloudSync(value: { folderId: number; enabled: boolean }): Promise<void>;
-  disableCloudSync(): Promise<void>;
-  syncCloud(): Promise<void>;
+  configureCloudSync(value: { folderId: number; enabled: boolean }, playlistId?: string): Promise<void>;
+  disableCloudSync(playlistId?: string): Promise<void>;
+  syncCloud(playlistId?: string): Promise<void>;
   discoverSubscriptions(input: string): Promise<SubscriptionDiscovery>;
   subscribe(value: { ownerMid: number; folderId: number; intervalMinutes: number }): Promise<string>;
   updateSubscription(id: string, value: { enabled: boolean; intervalMinutes: number }): Promise<void>;

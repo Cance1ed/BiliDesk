@@ -3,6 +3,28 @@ const assert = require('node:assert/strict');
 const { BilibiliClient } = require('../electron/bilibili.cjs');
 const json = (data) =>
   new Response(JSON.stringify({ code: 0, data }), { headers: { 'Content-Type': 'application/json' } });
+test('creating a folder uses only the add endpoint and explicit privacy, never an existing ID', async () => {
+  let calls = 0;
+  const client = new BilibiliClient(async (url, options) => {
+    calls++;
+    assert.equal(url, 'https://api.bilibili.com/x/v3/fav/folder/add');
+    assert.equal(options.method, 'POST');
+    assert.deepEqual(Object.fromEntries(new URLSearchParams(options.body)), {
+      title: '壁纸',
+      privacy: calls === 1 ? '1' : '0',
+      csrf: 'fixture',
+    });
+    return json({ id: 456, mid: 123, title: '壁纸' });
+  });
+  assert.deepEqual(await client.createFolder(' 壁纸 ', true, 'fixture'), {
+    id: 456,
+    ownerMid: 123,
+    title: '壁纸',
+  });
+  await client.createFolder('壁纸', false, 'fixture');
+  await assert.rejects(client.createFolder('壁纸', true, ''), /登录/);
+  assert.equal(calls, 2);
+});
 test('account API requests include isolated session credentials', async () => {
   const client = new BilibiliClient(async (_url, options) => {
     assert.equal(options.credentials, 'include');

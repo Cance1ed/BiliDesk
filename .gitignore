@@ -9,6 +9,7 @@ release/
 !.env.example
 account.enc
 library.json
+library.before-multi-playlists.json
 *.pem
 *.key
 *.p12

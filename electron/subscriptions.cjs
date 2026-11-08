@@ -105,6 +105,7 @@ class SubscriptionManager {
     folderId = positiveId(folderId);
     if (!INTERVALS.includes(intervalMinutes)) throw new Error('无效同步间隔');
     const check = () => {
+      if (this.closed) throw new Error('播放列表已切换，请重试');
       if (this.getLibrary().subscriptions.some((s) => s.folderId === folderId))
         throw new Error('已订阅这个收藏夹');
       if (this.getLibrary().subscriptions.length >= 20) throw new Error('最多订阅 20 个收藏夹');

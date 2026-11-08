@@ -42,6 +42,7 @@ import { MediaPlayer } from './MediaPlayer';
 import { Subscriptions } from './Subscriptions';
 import { Collections } from './Collections';
 import { CloudSyncPanel } from './CloudSyncPanel';
+import { PlaylistManager } from './PlaylistManager';
 
 const modes = { sequence: '顺序轮播', shuffle: '随机播放', single: '单曲循环' };
 const statusLabels: Record<string, string> = {
@@ -138,10 +139,15 @@ export default function App() {
       previewRun.current++;
       setPreview(null);
     }
-  }, [state?.playlist, selectedId]);
+  }, [state?.playlist, selectedId, state?.activePlaylistId]);
+  useEffect(() => {
+    setSelectedId('');
+    setQuery('');
+    clearPreview();
+  }, [state?.activePlaylistId]);
   const addVideos = (text: string, fromModal = false) =>
     task('add', async () => {
-      const response = await api.add(text);
+      const response = await api.add(text, state?.activePlaylistId);
       setResult(response);
       if (response.errors.length) {
         setBatch(response.errors.map((e) => e.input).join('\n'));
@@ -204,7 +210,10 @@ export default function App() {
           const response = await api.favorites(folderId, currentPage);
           if (cancelImport.current) break;
           if (response.videos.length) {
-            const added = await api.add(response.videos.map((video) => video.bvid).join('\n'));
+            const added = await api.add(
+              response.videos.map((video) => video.bvid).join('\n'),
+              state?.activePlaylistId,
+            );
             summary.added += added.added;
             summary.duplicates += added.duplicates;
             summary.errors.push(...added.errors);
@@ -555,7 +564,13 @@ export default function App() {
               </button>
             </form>
             <section className="playlist">
+              <PlaylistManager state={state} disabled={!!busy} />
               <CloudSyncPanel
+                key={state.activePlaylistId}
+                playlistId={state.activePlaylistId}
+                playlistName={
+                  state.playlists.find((p) => p.id === state.activePlaylistId)?.name || '播放列表'
+                }
                 profile={state.profile}
                 state={state.cloudSync}
                 count={state.playlist.length}
@@ -563,7 +578,7 @@ export default function App() {
               />
               <div className="section-heading">
                 <div>
-                  <h2>播放列表</h2>
+                  <h2>{state.playlists.find((p) => p.id === state.activePlaylistId)?.name || '播放列表'}</h2>
                   <span>{state.playlist.length} 个视频</span>
                 </div>
                 {state.playlist.length > 0 && (
@@ -714,7 +729,7 @@ export default function App() {
               </button>
             </div>
             {favoriteView === 'subscriptions' ? (
-              <Subscriptions subscriptions={state.subscriptions || []} />
+              <Subscriptions key={state.activePlaylistId} subscriptions={state.subscriptions || []} />
             ) : !state.profile ? (
               <section className="signed-out">
                 <div className="large-icon">
@@ -880,7 +895,14 @@ export default function App() {
             )}
           </>
         )}
-        {tab === 'collections' && <Collections profile={state.profile} login={() => setModal('login')} />}
+        {tab === 'collections' && (
+          <Collections
+            key={state.activePlaylistId}
+            playlistId={state.activePlaylistId}
+            profile={state.profile}
+            login={() => setModal('login')}
+          />
+        )}
         {tab === 'settings' && (
           <div className="settings-content">
             <section className="settings-section">
@@ -1045,7 +1067,7 @@ export default function App() {
             <div className="about">
               <Monitor size={23} />
               <strong>BiliDesk</strong>
-              <span>0.4.0</span>
+              <span>0.5.0</span>
               <p>为喜欢的画面，留一个位置。</p>
               <small>非 Bilibili 官方客户端 · Windows / macOS</small>
             </div>

@@ -20,6 +20,8 @@ const { defaults, validateSettings, nextIndex, isMediaUrl } = require('./core.cj
 const { attachDesktop, inspectDesktopBounds } = require('./desktop.cjs');
 const { SubscriptionManager } = require('./subscriptions.cjs');
 const { CloudSync, normalizeCloudSync } = require('./cloud-sync.cjs');
+const { normalizeLibrary, activePlaylist, createPlaylist, renamePlaylist } = require('./library.cjs');
+const { createFavoriteFolder } = require('./favorite-folder.cjs');
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -32,7 +34,7 @@ const smoke = process.argv.includes('--smoke-test');
 app.setPath('userData', path.join(app.getPath('appData'), 'BiliDesk'));
 if (smoke) app.setPath('userData', path.join(app.getPath('temp'), `bilidesk-smoke-${process.pid}`));
 let mainWindow, wallpaperWindow, tray, store, bili, authSession, mediaSession, subscriptions, cloudSync;
-let library = { playlist: [], settings: { ...defaults }, subscriptions: [], cloudSync: normalizeCloudSync() };
+let library = normalizeLibrary();
 let profile = null,
   accountWarning = '',
   qrKey = '',
@@ -54,7 +56,10 @@ const systemBlocks = new Set();
 const mediaRequests = new Map();
 const root = path.join(__dirname, '..');
 const snapshot = () => ({
-  ...library,
+  playlist: library.playlist,
+  settings: library.settings,
+  activePlaylistId: library.activePlaylistId,
+  playlists: library.playlists.map((p) => ({ id: p.id, name: p.name, count: p.playlist.length })),
   subscriptions: subscriptions ? subscriptions.snapshot() : [],
   cloudSync: cloudSync ? cloudSync.snapshot() : { ...library.cloudSync, syncing: false },
   profile,
@@ -380,29 +385,89 @@ async function initialize() {
     }
   });
   handle('bootstrap', () => snapshot());
-  subscriptions = new SubscriptionManager({ client: bili, getLibrary: () => library, save, changed: emit });
-  cloudSync = new CloudSync({
-    client: bili,
-    getLibrary: () => library,
-    getAccount: () => profile?.mid,
-    save,
-    changed: emit,
-    writeFavorite: async (aid, folderId, account, valid) => {
-      const cookies = await authSession.cookies.get({ url: 'https://api.bilibili.com', name: 'bili_jct' });
-      if (!valid() || profile?.mid !== account) throw new Error('账号已切换，同步已停止');
-      const csrf = cookies[0]?.value;
-      if (!csrf) throw new Error('登录校验已失效，请重新扫码登录');
-      return bili.addFavorite(aid, folderId, csrf);
-    },
-  });
+  const bindPlaylist = () => {
+    subscriptions?.close();
+    cloudSync?.close();
+    const context = activePlaylist(library);
+    subscriptions = new SubscriptionManager({ client: bili, getLibrary: () => context, save, changed: emit });
+    cloudSync = new CloudSync({
+      client: bili,
+      getLibrary: () => context,
+      getAccount: () => profile?.mid,
+      save,
+      changed: emit,
+      writeFavorite: async (aid, folderId, account, valid) => {
+        const cookies = await authSession.cookies.get({ url: 'https://api.bilibili.com', name: 'bili_jct' });
+        if (!valid() || profile?.mid !== account) throw new Error('账号已切换，同步已停止');
+        const csrf = cookies[0]?.value;
+        if (!csrf) throw new Error('登录校验已失效，请重新扫码登录');
+        return bili.addFavorite(aid, folderId, csrf);
+      },
+    });
+    if (!smoke) {
+      subscriptions.start();
+      cloudSync.start();
+    }
+  };
+  bindPlaylist();
+  const assertPlaylist = (id) => {
+    if (id !== undefined && id !== library.activePlaylistId) throw new Error('播放列表已切换，请重新操作');
+  };
   handle('subscription-discover', (input) => subscriptions.discover(input));
   handle('subscription-add', (value) => subscriptions.add(value));
   handle('subscription-update', (id, value) => subscriptions.update(id, value));
   handle('subscription-remove', (id) => subscriptions.remove(id));
   handle('subscription-sync', (id) => subscriptions.sync(id));
   let adding = false;
-  handle('add', async (text) => {
-    if (adding) throw new Error('正在解析上一批视频，请稍等');
+  let changingPlaylist = false;
+  const changePlaylist = async (action) => {
+    if (adding || changingPlaylist) throw new Error('正在保存或导入，请稍后切换播放列表');
+    changingPlaylist = true;
+    const previous = normalizeLibrary(JSON.parse(JSON.stringify(library)));
+    try {
+      action();
+      stop();
+      clearTokens('preview');
+      bindPlaylist();
+      await save();
+      emit();
+    } catch (error) {
+      library = previous;
+      bindPlaylist();
+      emit();
+      throw error;
+    } finally {
+      changingPlaylist = false;
+    }
+  };
+  handle('playlist-create', (name, copy = false) =>
+    changePlaylist(() => {
+      const item = createPlaylist(library, name, copy === true);
+      library.activePlaylistId = item.id;
+    }),
+  );
+  handle('playlist-activate', (id) =>
+    changePlaylist(() => {
+      if (!library.playlists.some((p) => p.id === id)) throw new Error('播放列表不存在');
+      library.activePlaylistId = id;
+    }),
+  );
+  handle('playlist-rename', async (id, name) => {
+    renamePlaylist(library, id, name);
+    await save();
+    emit();
+  });
+  handle('playlist-delete', (id) =>
+    changePlaylist(() => {
+      if (library.playlists.length <= 1) throw new Error('至少保留一个播放列表');
+      if (!library.playlists.some((p) => p.id === id)) throw new Error('播放列表不存在');
+      library.playlists = library.playlists.filter((p) => p.id !== id);
+      if (library.activePlaylistId === id) library.activePlaylistId = library.playlists[0].id;
+    }),
+  );
+  handle('add', async (text, playlistId) => {
+    assertPlaylist(playlistId);
+    if (adding || changingPlaylist) throw new Error('正在保存或解析上一批视频，请稍等');
     if (typeof text !== 'string' || text.length > 30000) throw new Error('输入过长，请分批添加');
     const inputs = text.split(/[\s,，;；]+/).filter(Boolean);
     if (!inputs.length || inputs.length > 100) throw new Error('每次请输入 1–100 个视频链接');
@@ -503,6 +568,8 @@ async function initialize() {
   });
   handle('logout', async () => {
     await cloudSync.disable();
+    for (const list of library.playlists) list.cloudSync.enabled = false;
+    await save();
     stop();
     qrKey = '';
     await authSession.clearStorageData();
@@ -531,9 +598,44 @@ async function initialize() {
     if (!validId(id) || !validId(ownerMid) || !validPage(page)) throw new Error('无效合集参数');
     return bili.collectionVideos(id, ownerMid, page);
   });
-  handle('cloud-configure', (value) => cloudSync.configure(value));
-  handle('cloud-disable', () => cloudSync.disable());
-  handle('cloud-sync', () => cloudSync.sync());
+  handle('cloud-configure', (value, playlistId) => {
+    assertPlaylist(playlistId);
+    return cloudSync.configure(value);
+  });
+  handle('cloud-disable', (playlistId) => {
+    assertPlaylist(playlistId);
+    return cloudSync.disable();
+  });
+  handle('cloud-sync', (playlistId) => {
+    assertPlaylist(playlistId);
+    return cloudSync.sync();
+  });
+  let creatingFolder = false;
+  handle('folder-create', async (value, playlistId) => {
+    assertPlaylist(playlistId);
+    if (creatingFolder) throw new Error('正在新建收藏夹，请稍候');
+    const context = activePlaylist(library),
+      account = profile?.mid;
+    const valid = () => profile?.mid === account && activePlaylist(library) === context;
+    creatingFolder = true;
+    try {
+      return await createFavoriteFolder({
+        client: bili,
+        value,
+        account,
+        valid,
+        getCsrf: async () => {
+          const cookies = await authSession.cookies.get({
+            url: 'https://api.bilibili.com',
+            name: 'bili_jct',
+          });
+          return cookies[0]?.value;
+        },
+      });
+    } finally {
+      creatingFolder = false;
+    }
+  });
   handle('favorites', async (id, page) => {
     if (!profile) throw new Error('请先登录');
     if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(page) || page < 1 || page > 1000)
@@ -582,8 +684,6 @@ async function initialize() {
       );
   });
   await createMain();
-  if (!smoke) subscriptions.start();
-  if (!smoke) cloudSync.start();
   if (!smoke) createTray();
   if (process.argv.includes('--hidden')) mainWindow.hide();
   if (!smoke)
@@ -635,6 +735,41 @@ async function initialize() {
         `(async () => { const s = await window.bilidesk.bootstrap(); await new Promise((resolve, reject) => { let count = 0; const check = () => { if (document.querySelector('h1')) resolve(); else if (++count > 100) reject(new Error('UI did not render')); else setTimeout(check, 30); }; check(); }); return { platform: s.platform, count: s.playlist.length, title: document.querySelector('h1')?.textContent, isolated: typeof require === 'undefined' }; })()`,
       );
       console.log('BILIDESK_SMOKE ' + JSON.stringify(result));
+      // Isolated smoke data only; exercise the real IPC and persistence without account writes.
+      library.playlist.push({
+        id: 'BV17x411w7KC:1',
+        bvid: 'BV17x411w7KC',
+        cid: 1,
+        title: 'Playlist smoke fixture',
+      });
+      await save();
+      const listCheck = await mainWindow.webContents.executeJavaScript(`(async()=>{
+        const api=window.bilidesk,check=(value,message)=>{if(!value)throw new Error(message);};
+        const original=await api.bootstrap();
+        await api.createPlaylist('烟测副本',true);
+        let s=await api.bootstrap();const copy=s.activePlaylistId;
+        check(s.playlist.length===1&&!s.cloudSync.enabled&&!s.cloudSync.folderId,'Copy inherited unsafe config');
+        await api.renamePlaylist(copy,'工作专注');
+        await api.remove(s.playlist[0].id);
+        await api.createPlaylist('空列表');
+        s=await api.bootstrap();const empty=s.activePlaylistId;
+        check(s.playlist.length===0&&s.playlists.length===3,'New list not empty');
+        let stale=false;try{await api.add('av170001',copy);}catch{stale=true;}
+        check(stale,'Stale import target accepted');
+        await api.activatePlaylist(original.activePlaylistId);
+        s=await api.bootstrap();check(s.playlist.length===1,'Original list was changed');
+        await api.deletePlaylist(copy);await api.deletePlaylist(empty);
+        let last=false;try{await api.deletePlaylist(original.activePlaylistId);}catch{last=true;}
+        check(last,'Last playlist deleted');
+        let guarded=false;try{await api.createFolder({title:'smoke',private:true},original.activePlaylistId);}catch{guarded=true;}
+        check(guarded,'Anonymous folder write accepted');
+        await api.remove(s.playlist[0].id);
+        return{copyIsolated:true,renamed:true,switched:true,deletedLocally:true,staleImportBlocked:stale,anonymousCreateBlocked:guarded};
+      })()`);
+      const listDisk = await store.load();
+      if (listDisk.playlists.length !== 1 || listDisk.playlist.length !== 0)
+        throw new Error('Playlist IPC changes were not persisted');
+      console.log('BILIDESK_PLAYLISTS ' + JSON.stringify({ ...listCheck, persisted: true }));
       if (process.argv.includes('--smoke-subscriptions')) {
         const collection = await mainWindow.webContents.executeJavaScript(
           `window.bilidesk.collectionVideos(1227671,37737161,1)`,

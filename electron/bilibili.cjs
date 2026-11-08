@@ -139,6 +139,29 @@ class BilibiliClient {
       { method: 'POST' },
     );
   }
+  async createFolder(title, isPrivate, csrf) {
+    if (
+      typeof title !== 'string' ||
+      !title.trim() ||
+      title.trim().length > 20 ||
+      typeof isPrivate !== 'boolean' ||
+      !csrf
+    )
+      throw new Error('收藏夹参数或登录状态无效');
+    let data;
+    try {
+      data = await this.request(
+        '/x/v3/fav/folder/add',
+        { title: title.trim(), privacy: isPrivate ? 1 : 0, csrf },
+        { method: 'POST' },
+      );
+    } catch (error) {
+      throw new Error(`新建结果未确认，请刷新收藏夹检查后再试：${error.message}`);
+    }
+    if (!Number.isSafeInteger(data?.id) || data.id <= 0)
+      throw new Error('未收到新建收藏夹编号，请刷新收藏夹检查后再试');
+    return { id: data.id, title: data.title || title.trim(), ownerMid: Number(data.mid || data.upper?.mid) };
+  }
   async favorites(folderId, page) {
     const data = await this.request('/x/v3/fav/resource/list', {
       media_id: folderId,

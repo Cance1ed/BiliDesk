@@ -7,17 +7,24 @@ export function CloudSyncPanel({
   state,
   count,
   login,
+  playlistId,
+  playlistName,
 }: {
   profile: Profile | null;
   state: CloudSyncState;
   count: number;
   login: () => void;
+  playlistId: string;
+  playlistName: string;
 }) {
   const [folders, setFolders] = useState<Folder[]>([]),
     [target, setTarget] = useState(''),
     [automatic, setAutomatic] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
+  const [destination, setDestination] = useState(state.folderId ? 'existing' : 'new'),
+    [newName, setNewName] = useState(`BiliDesk - ${playlistName}`.slice(0, 20)),
+    [isPrivate, setPrivate] = useState(true);
   const matches = profile?.mid === state.ownerMid;
   useEffect(() => {
     setTarget(matches && state.folderId ? String(state.folderId) : '');
@@ -68,36 +75,98 @@ export function CloudSyncPanel({
       <div className="cloud-body">
         {profile ? (
           <>
-            <p>将当前播放列表保存到你自己的 Bilibili 收藏夹。开启自动同步后，新增视频也会自动保存。</p>
-            <div className="cloud-target">
-              <select
-                aria-label="同步目标收藏夹"
-                value={target}
-                disabled={busy || state.syncing}
-                onChange={(e) => setTarget(e.target.value)}
-              >
-                <option value="">选择我的收藏夹</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.title} · {f.count} 个内容
-                  </option>
-                ))}
-              </select>
+            <p>
+              将「{playlistName}
+              」保存到自己的收藏夹。仅向所选目标追加缺少的视频，不覆盖、清空或删除任何原有收藏夹。
+            </p>
+            <div className="favorite-tabs" role="tablist" aria-label="保存收藏夹方式">
               <button
-                className="icon-button"
-                aria-label="刷新同步目标收藏夹"
+                role="tab"
+                aria-selected={destination === 'new'}
                 disabled={busy || state.syncing}
-                onClick={() => void run(async () => setFolders(await api.folders()))}
+                onClick={() => setDestination('new')}
               >
-                <RefreshCw size={17} />
+                新建收藏夹
               </button>
               <button
+                role="tab"
+                aria-selected={destination === 'existing'}
+                disabled={busy || state.syncing}
+                onClick={() => setDestination('existing')}
+              >
+                已有收藏夹 · 仅追加
+              </button>
+            </div>
+            {destination === 'new' && (
+              <div className="cloud-new-folder">
+                <label>
+                  新收藏夹名称
+                  <input
+                    aria-label="新收藏夹名称"
+                    maxLength={20}
+                    value={newName}
+                    disabled={busy || state.syncing}
+                    onChange={(e) => setNewName(e.target.value)}
+                  />
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={isPrivate}
+                    disabled={busy || state.syncing}
+                    onChange={(e) => setPrivate(e.target.checked)}
+                  />
+                  私密收藏夹
+                </label>
+                <p className="subscription-hint">同名收藏夹已存在时会提示改名，不会复用或覆盖。</p>
+              </div>
+            )}
+            <div className="cloud-target">
+              {destination === 'existing' && (
+                <>
+                  <select
+                    aria-label="同步目标收藏夹"
+                    value={target}
+                    disabled={busy || state.syncing}
+                    onChange={(e) => setTarget(e.target.value)}
+                  >
+                    <option value="">选择我的收藏夹</option>
+                    {folders.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.title} · {f.count} 个内容
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="icon-button"
+                    aria-label="刷新同步目标收藏夹"
+                    disabled={busy || state.syncing}
+                    onClick={() => void run(async () => setFolders(await api.folders()))}
+                  >
+                    <RefreshCw size={17} />
+                  </button>
+                </>
+              )}
+              <button
                 className="button primary small"
-                disabled={!target || busy || state.syncing || !count}
+                disabled={
+                  (destination === 'existing' ? !target : !newName.trim()) || busy || state.syncing || !count
+                }
                 onClick={() =>
                   void run(async () => {
-                    await api.configureCloudSync({ folderId: Number(target), enabled: automatic });
-                    await api.syncCloud();
+                    let folderId = Number(target);
+                    if (destination === 'new') {
+                      const created = await api.createFolder(
+                        { title: newName.trim(), private: isPrivate },
+                        playlistId,
+                      );
+                      folderId = created.id;
+                      setFolders((old) => [...old.filter((f) => f.id !== created.id), created]);
+                      setTarget(String(created.id));
+                      setDestination('existing');
+                    }
+                    await api.configureCloudSync({ folderId, enabled: automatic }, playlistId);
+                    await api.syncCloud(playlistId);
                   })
                 }
               >
@@ -106,7 +175,7 @@ export function CloudSyncPanel({
                 ) : (
                   <CloudUpload size={16} />
                 )}
-                保存并同步
+                {destination === 'new' ? '新建并保存' : '追加保存并同步'}
               </button>
             </div>
             <div className="cloud-options">
@@ -122,7 +191,7 @@ export function CloudSyncPanel({
               {matches && (state.enabled || state.syncing) && (
                 <button
                   className="text-button"
-                  onClick={() => void api.disableCloudSync().catch((e) => setError(e.message))}
+                  onClick={() => void api.disableCloudSync(playlistId).catch((e) => setError(e.message))}
                 >
                   {state.syncing ? '停止同步' : '关闭自动同步'}
                 </button>

@@ -14,6 +14,8 @@ const videos: Video[] = ids.map((bvid, i) => ({
   url: '',
 }));
 const state: Snapshot = {
+  activePlaylistId: 'default',
+  playlists: [{ id: 'default', name: '默认播放列表', count: 0 }],
   playlist: [],
   subscriptions: [],
   cloudSync: {
@@ -44,7 +46,24 @@ const state: Snapshot = {
   playback: { status: 'stopped', currentId: null, error: '', quality: 0 },
 };
 let listener: (s: Snapshot) => void = () => {};
-const emit = () => listener(structuredClone(state));
+const lists = new Map<string, { playlist: Video[]; cloudSync: Snapshot['cloudSync'] }>([
+  ['default', { playlist: state.playlist, cloudSync: state.cloudSync }],
+]);
+const emptyCloud = structuredClone(state.cloudSync);
+const folders = [{ id: 999, title: '珍藏 · 保留原有内容', count: 12 }];
+const emit = () => {
+  lists.set(state.activePlaylistId, { playlist: state.playlist, cloudSync: state.cloudSync });
+  state.playlists = state.playlists.map((p) => ({ ...p, count: lists.get(p.id)!.playlist.length }));
+  listener(structuredClone(state));
+};
+const activate = async (id: string) => {
+  const next = lists.get(id);
+  if (!next) throw new Error('播放列表不存在');
+  state.activePlaylistId = id;
+  state.playlist = next.playlist;
+  state.cloudSync = next.cloudSync;
+  emit();
+};
 const log = (text: string) => {
   document.querySelector('#qa-log')!.textContent = `交互测试数据，不连接账号 · ${text}`;
 };
@@ -53,6 +72,35 @@ const unavailable = async (): Promise<never> => {
 };
 window.bilidesk = {
   platform: 'web',
+  createPlaylist: async (name, copy = false) => {
+    if (state.playlists.some((p) => p.name === name.trim())) throw new Error('播放列表名称已存在');
+    const id = crypto.randomUUID();
+    lists.set(id, {
+      playlist: copy ? structuredClone(state.playlist) : [],
+      cloudSync: structuredClone(emptyCloud),
+    });
+    state.playlists.push({ id, name: name.trim(), count: 0 });
+    await activate(id);
+  },
+  activatePlaylist: activate,
+  renamePlaylist: async (id, name) => {
+    const p = state.playlists.find((p) => p.id === id)!;
+    p.name = name;
+    emit();
+  },
+  deletePlaylist: async (id) => {
+    state.playlists = state.playlists.filter((p) => p.id !== id);
+    lists.delete(id);
+    await activate(state.playlists[0].id);
+  },
+  createFolder: async (value) => {
+    if (folders.some((f) => f.title === value.title.trim()))
+      throw new Error('同名收藏夹已存在，请修改名称或选择已有收藏夹追加保存');
+    const f = { id: 1000 + folders.length, title: value.title, count: 0 };
+    folders.push(f);
+    log(`模拟新建「${f.title}」 · 私密 ${value.private} · 原有收藏夹仍有 ${folders[0].count} 个内容`);
+    return f;
+  },
   bootstrap: async () => structuredClone(state),
   onState: (cb) => {
     listener = cb;
@@ -94,13 +142,13 @@ window.bilidesk = {
     log(`播放列表 ${state.playlist.length} 个视频`);
     return result;
   },
-  folders: async () => [{ id: 999, title: 'BiliDesk 壁纸', count: 0 }],
+  folders: async () => structuredClone(folders),
   configureCloudSync: async (value) => {
     state.cloudSync = {
       ...state.cloudSync,
       ownerMid: 123,
       folderId: value.folderId,
-      title: 'BiliDesk 壁纸',
+      title: folders.find((f) => f.id === value.folderId)!.title,
       enabled: value.enabled,
     };
     emit();
@@ -108,7 +156,9 @@ window.bilidesk = {
   syncCloud: async () => {
     state.cloudSync = { ...state.cloudSync, lastSyncAt: Date.now(), addedLast: state.playlist.length };
     emit();
-    log(`模拟收藏 ${state.playlist.length} 个 · 自动同步 ${state.cloudSync.enabled}`);
+    log(
+      `模拟收藏 ${state.playlist.length} 个 · 自动同步 ${state.cloudSync.enabled} · 原有收藏夹仍有 ${folders[0].count} 个内容`,
+    );
   },
   disableCloudSync: async () => {
     state.cloudSync.enabled = false;

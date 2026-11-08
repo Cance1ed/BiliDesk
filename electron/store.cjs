@@ -1,8 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { defaults, validateSettings } = require('./core.cjs');
-const { normalizeSubscriptions } = require('./subscriptions.cjs');
-const { normalizeCloudSync } = require('./cloud-sync.cjs');
+const { normalizeLibrary } = require('./library.cjs');
 class Store {
   constructor(directory) {
     this.directory = directory;
@@ -10,27 +8,12 @@ class Store {
   }
   async load() {
     try {
-      const data = JSON.parse(await fs.readFile(path.join(this.directory, 'library.json'), 'utf8'));
-      const playlist = Array.isArray(data.playlist)
-        ? data.playlist
-            .filter(
-              (v) =>
-                /^BV[\da-zA-Z]{10}$/.test(v.bvid) &&
-                Number.isSafeInteger(v.cid) &&
-                v.cid > 0 &&
-                v.id === `${v.bvid}:${v.cid}` &&
-                typeof v.title === 'string',
-            )
-            .slice(0, 1000)
-        : [];
-      return {
-        playlist,
-        settings: validateSettings(data.settings),
-        subscriptions: normalizeSubscriptions(data.subscriptions),
-        cloudSync: normalizeCloudSync(data.cloudSync),
-      };
+      const original = await fs.readFile(path.join(this.directory, 'library.json'), 'utf8');
+      const data = JSON.parse(original);
+      if (data && !Array.isArray(data.playlists)) this.legacySnapshot = original;
+      return normalizeLibrary(data);
     } catch {
-      return { playlist: [], settings: { ...defaults }, subscriptions: [], cloudSync: normalizeCloudSync() };
+      return normalizeLibrary();
     }
   }
   save(data) {
@@ -39,6 +22,18 @@ class Store {
       .catch(() => {})
       .then(async () => {
         await fs.mkdir(this.directory, { recursive: true });
+        if (this.legacySnapshot) {
+          try {
+            await fs.writeFile(
+              path.join(this.directory, 'library.before-multi-playlists.json'),
+              this.legacySnapshot,
+              { flag: 'wx', mode: 0o600 },
+            );
+          } catch (error) {
+            if (error.code !== 'EEXIST') throw error;
+          }
+          this.legacySnapshot = null;
+        }
         const target = path.join(this.directory, 'library.json');
         await fs.writeFile(target + '.tmp', json, { mode: 0o600 });
         await fs.rename(target + '.tmp', target);

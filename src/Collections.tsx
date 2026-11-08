@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, FolderOpen, Layers, LoaderCircle, RefreshCw, UserRound, Info } from 'lucide-react';
 import { api, duration } from './api';
 import type { Collection, Favorite, Profile } from './types';
-export function Collections({ profile, login }: { profile: Profile | null; login: () => void }) {
+export function Collections({
+  profile,
+  login,
+  playlistId,
+}: {
+  profile: Profile | null;
+  login: () => void;
+  playlistId: string;
+}) {
   const [collections, setCollections] = useState<Collection[]>([]),
     [listPage, setListPage] = useState(1),
     [listMore, setListMore] = useState(false);
@@ -73,7 +81,7 @@ export function Collections({ profile, login }: { profile: Profile | null; login
     const failures: string[] = [];
     const add = async (ids: string[]) => {
       for (let start = 0; start < ids.length && !cancelled.current; start += 30) {
-        const result = await api.add(ids.slice(start, start + 30).join('\n'));
+        const result = await api.add(ids.slice(start, start + 30).join('\n'), playlistId);
         added += result.added;
         duplicates += result.duplicates;
         failed += result.errors.length;

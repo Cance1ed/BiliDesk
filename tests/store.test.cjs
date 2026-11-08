@@ -18,19 +18,17 @@ test('queued atomic saves keep the newest settings and recover from corrupt data
     ]);
     assert.equal((await store.load()).settings.volume, 70);
     assert.equal((await store.load()).settings.portraitColumns, 4);
-    await store.save({
-      ...initial,
-      cloudSync: { ownerMid: 123, folderId: 456, title: '云端壁纸', enabled: true, lastSyncAt: 12345 },
-      subscriptions: [
-        {
-          ownerMid: 123,
-          folderId: 456,
-          title: 'Persistent',
-          intervalMinutes: 15,
-          knownBvids: ['BV17x411w7KC'],
-        },
-      ],
-    });
+    initial.cloudSync = { ownerMid: 123, folderId: 456, title: '云端壁纸', enabled: true, lastSyncAt: 12345 };
+    initial.subscriptions = [
+      {
+        ownerMid: 123,
+        folderId: 456,
+        title: 'Persistent',
+        intervalMinutes: 15,
+        knownBvids: ['BV17x411w7KC'],
+      },
+    ];
+    await store.save(initial);
     const restored = await store.load();
     assert.equal(restored.cloudSync.enabled, true);
     assert.equal(restored.cloudSync.ownerMid, 123);

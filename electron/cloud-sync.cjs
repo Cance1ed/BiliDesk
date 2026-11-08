@@ -1,5 +1,6 @@
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function normalizeCloudSync(value = {}) {
+  if (!value || typeof value !== 'object') value = {};
   const valid =
     Number.isSafeInteger(value.ownerMid) &&
     value.ownerMid > 0 &&
@@ -36,7 +37,8 @@ class CloudSync {
     if (!account) throw new Error('请先登录 Bilibili');
     const user = await this.client.profile();
     const folder = await this.client.favorites(folderId, 1);
-    if (epoch !== this.epoch || account !== this.getAccount()) throw new Error('账号已切换，请重试');
+    if (this.closed || epoch !== this.epoch || account !== this.getAccount())
+      throw new Error('账号或播放列表已切换，请重试');
     if (user?.mid !== account || folder.info?.ownerMid !== account || folder.info?.id !== folderId)
       throw new Error('只能同步到当前账号自己的收藏夹');
     this.cancel();

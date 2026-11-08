@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>Your favorite Bilibili videos, on your desktop.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.4.0">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.0">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
 </div>
 
 An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscriptions, collection imports, and synchronized portrait-video tiling. The current application interface is in Simplified Chinese.
@@ -13,12 +13,15 @@ An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscrip
 ## Features
 
 - **Anonymous playback:** BV/av IDs, video URLs, b23.tv short links, and specific video parts. Batch import, search, reorder, and deduplicate your playlist.
+- **Multiple playlists:** create, rename, copy, switch, and delete up to 20 local playlists. Each keeps its own videos, subscriptions, and cloud destination. Copies start with subscriptions and cloud sync disabled.
 - **Your account:** QR login, favorite-folder browsing, and selected-video or whole-folder imports.
 - **Favorite-folder subscriptions:** enter an owner's UID, profile URL, or folder URL; import existing videos and append new ones every 15 minutes, hour, 6 hours, or day. Public folders work without login.
 - **Subscribed collections:** browse collections saved by your account; import entire collections or select videos across pages.
-- **Save playlists to favorites:** choose your own account's destination folder and optionally enable automatic synchronization. Missing videos are appended; existing favorites are preserved.
+- **Save playlists to favorites:** create a new folder (private by default) or explicitly choose an existing folder for append-only saving. Same-name creation is rejected; existing folders and their contents are never replaced or deleted.
 - **Portrait tiling:** automatically repeat portrait video across the desktop, typically three columns on a 16:9 display, or select 2–8 columns. All tiles share one decoded video and audio track.
 - **Desktop controls:** sequential/shuffle/single looping, display selection, volume, fill/fit modes, timed switching, tray controls, lock/sleep pause, and optional battery pause.
+
+![Multiple playlists and new favorite folders, using simulated account data](docs/screenshot-playlists.png)
 
 ![Portrait tiling with an original synthetic test video](docs/screenshot-portrait-tiling.png)
 
@@ -26,7 +29,7 @@ Tiling uses actual video dimensions and preserves aspect ratio; slight cropping 
 
 ## Download & platform status
 
-**[Download Windows x64 v0.4.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.4.0)** — early preview; SHA-256 checksums are attached to the release.
+**[Download Windows x64 v0.5.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.0)** — early preview; SHA-256 checksums are attached to the release.
 
 | Platform                                    | Status                                                                                 |
 | ------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -38,18 +41,19 @@ Installers are unsigned. macOS signing and notarization are not configured. Exit
 
 ## Getting started
 
-1. In **我的壁纸 (My wallpapers)**, paste a link or BV/av ID and click **解析链接 (Parse link)**.
+1. In **我的壁纸 (My wallpapers)**, select a playlist or use **新建列表 (New playlist)**. Paste a link or BV/av ID and click **解析链接 (Parse link)** to add to the selected list.
 2. Select a video and click **启用动态壁纸 (Enable live wallpaper)**. Playback is muted by default.
 3. Open **收藏夹 → 订阅收藏夹 (Favorites → Subscribe)** to subscribe to a particular user's folder. Log in to access private folders when permitted.
 4. Open **订阅合集 (Subscribed collections)** after login to import whole collections or selected videos.
-5. Expand **保存到账号收藏夹 (Save to account favorites)** above the playlist, choose a destination, and click **保存并同步 (Save and sync)**. Automatic account writes are off until explicitly enabled and saved.
+5. Expand **保存到账号收藏夹 (Save to account favorites)**. Use **新建收藏夹 (New folder)** and **新建并保存 (Create and save)**, or choose **已有收藏夹 · 仅追加 (Existing folder · append only)**. Automatic account writes are off until explicitly enabled and saved.
 6. Use **播放设置 → 竖屏视频联屏 (Playback settings → Portrait tiling)** for automatic, fixed-column, or disabled tiling.
 
 Closing the management window keeps the app in the tray. Pause, skip, stop, or quit from the tray; stop/quit restores the underlying desktop.
 
 ### Synchronization rules
 
-- Synchronization runs only while the app is running. Up to 20 folder subscriptions and 1,000 playlist entries are supported.
+- Up to 20 playlists, each with 20 subscriptions and 1,000 entries. Switching stops current playback and cancels the old list's pending sync; only the active list syncs automatically while the app runs. Already submitted requests may finish.
+- Upgrades migrate the old list to **默认播放列表 (Default playlist)** and save the original JSON as `library.before-multi-playlists.json` before the first write. Renaming/deleting a local list never renames/deletes an account folder. Global playback settings remain shared.
 - Folder subscriptions append new videos. Unsubscribing keeps imports; manually removed videos are not re-added by that subscription. Re-subscribing starts a fresh import.
 - Account synchronization is **additive**, not a two-way mirror: it never deletes existing favorites. New entries are scheduled after about 5 seconds; a 15-minute check retries failures.
 - Bilibili favorites store whole submissions: multiple parts of one video are favorited once. Part selection, ordering, and wallpaper settings remain local.
