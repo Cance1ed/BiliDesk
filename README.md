@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>Your favorite Bilibili videos, on your desktop.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.0">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
 </div>
 
 An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscriptions, collection imports, and synchronized portrait-video tiling. The current application interface is in Simplified Chinese.
@@ -29,7 +29,7 @@ Tiling uses actual video dimensions and preserves aspect ratio; slight cropping 
 
 ## Download & platform status
 
-**[Download Windows x64 v0.5.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.0)** — early preview; SHA-256 checksums are attached to the release.
+**[Download Windows x64 v0.5.1](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)** — early preview; SHA-256 checksums are attached to the release.
 
 | Platform                                    | Status                                                                                 |
 | ------------------------------------------- | -------------------------------------------------------------------------------------- |

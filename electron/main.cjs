@@ -163,25 +163,13 @@ function updateTray() {
   );
 }
 function createTray() {
-  // A small original monochrome monitor icon, drawn into an RGBA bitmap.
-  const pixels = Buffer.alloc(24 * 24 * 4);
-  for (let y = 0; y < 24; y++)
-    for (let x = 0; x < 24; x++) {
-      if (
-        (x >= 2 && x <= 21 && (y === 4 || y === 16)) ||
-        ((x === 2 || x === 21) && y >= 4 && y <= 16) ||
-        (x >= 11 && x <= 12 && y >= 17 && y <= 19) ||
-        (y === 20 && x >= 7 && x <= 16)
-      ) {
-        const i = (y * 24 + x) * 4;
-        pixels[i] = 238;
-        pixels[i + 1] = 91;
-        pixels[i + 2] = 128;
-        pixels[i + 3] = 255;
-      }
-    }
-  const icon = nativeImage.createFromBitmap(pixels, { width: 24, height: 24 });
-  if (process.platform === 'darwin') icon.setTemplateImage(true);
+  // Reuse the application artwork, including its pink background and white play symbol.
+  const size = process.platform === 'darwin' ? 22 : 24;
+  const icon = nativeImage.createFromPath(path.join(root, 'dist', 'icon.png')).resize({
+    width: size,
+    height: size,
+    quality: 'best',
+  });
   tray = new Tray(icon);
   tray.setToolTip('BiliDesk · 动态壁纸');
   tray.on('double-click', () => mainWindow.show());

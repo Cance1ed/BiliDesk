@@ -1067,7 +1067,7 @@ export default function App() {
             <div className="about">
               <Monitor size={23} />
               <strong>BiliDesk</strong>
-              <span>0.5.0</span>
+              <span>0.5.1</span>
               <p>为喜欢的画面，留一个位置。</p>
               <small>非 Bilibili 官方客户端 · Windows / macOS</small>
             </div>

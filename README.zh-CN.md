@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>让喜欢的 Bilibili 视频，成为桌面的风景。</p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.0">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
 </div>
 
 基于 Electron 的动态壁纸应用，支持 Bilibili 播放列表、收藏夹订阅、合集导入和同步竖屏三联 / N 联效果。当前应用界面为简体中文。
@@ -29,7 +29,7 @@
 
 ## 下载与平台状态
 
-**[下载 Windows x64 v0.5.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.0)**：早期预览版，Release 附 SHA-256 校验文件。
+**[下载 Windows x64 v0.5.1](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)**：早期预览版，Release 附 SHA-256 校验文件。
 
 | 平台                        | 状态                                                 |
 | --------------------------- | ---------------------------------------------------- |
