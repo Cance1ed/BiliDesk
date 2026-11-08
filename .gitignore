@@ -1,0 +1,15 @@
+node_modules/
+dist/
+release/
+.qa/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+account.enc
+library.json
+*.pem
+*.key
+*.p12
+*.pfx

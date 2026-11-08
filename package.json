@@ -1,0 +1,99 @@
+{
+  "name": "bilidesk",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Bilibili video live wallpapers for Windows and macOS",
+  "author": "Cance1ed and BiliDesk contributors",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "test:smoke": "node scripts/smoke.mjs",
+    "pack": "npm run build && electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "test:live": "node scripts/run-live-check.mjs",
+    "test:playback": "node scripts/smoke.mjs --playback",
+    "format": "prettier --write src electron scripts tests *.json *.ts *.html docs/*.md README.md",
+    "licenses": "node scripts/third-party-notices.mjs"
+  },
+  "dependencies": {
+    "koffi": "^3.3.7",
+    "lucide-react": "^0.468.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.0.12",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.4.0"
+  },
+  "build": {
+    "appId": "app.bilidesk.desktop",
+    "productName": "BiliDesk",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "LICENSE",
+      "NOTICE",
+      "THIRD_PARTY_NOTICES.txt"
+    ],
+    "asarUnpack": [
+      "node_modules/koffi/**/*",
+      "node_modules/@koromix/**/*"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true
+    },
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "icon": "public/icon.png"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cance1ed/BiliDesk.git"
+  },
+  "homepage": "https://github.com/Cance1ed/BiliDesk#readme",
+  "bugs": {
+    "url": "https://github.com/Cance1ed/BiliDesk/issues"
+  }
+}

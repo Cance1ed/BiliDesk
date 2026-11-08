@@ -1,0 +1,69 @@
+import type { Bridge, Snapshot } from './types';
+const initial: Snapshot = {
+  cloudSync: {
+    ownerMid: 0,
+    folderId: 0,
+    title: '',
+    enabled: false,
+    lastSyncAt: 0,
+    lastError: '',
+    addedLast: 0,
+    syncing: false,
+  },
+  playlist: [],
+  subscriptions: [],
+  settings: {
+    mode: 'sequence',
+    displayId: 'primary',
+    volume: 0,
+    fit: 'cover',
+    portraitColumns: 0,
+    interval: 0,
+    quality: 80,
+    pauseOnBattery: true,
+    launchAtLogin: false,
+  },
+  profile: null,
+  accountWarning: '',
+  platform: 'web',
+  displays: [],
+  playback: { status: 'stopped', currentId: null, error: '', quality: 0 },
+};
+const desktopOnly = async (): Promise<never> => {
+  throw new Error('请在 BiliDesk 桌面客户端中使用此功能。浏览器仅用于界面预览。');
+};
+export const api: Bridge = window.bilidesk || {
+  platform: 'web',
+  bootstrap: async () => initial,
+  add: desktopOnly,
+  remove: desktopOnly,
+  reorder: desktopOnly,
+  settings: desktopOnly,
+  qr: desktopOnly,
+  poll: desktopOnly,
+  logout: desktopOnly,
+  folders: desktopOnly,
+  collections: desktopOnly,
+  collectionVideos: desktopOnly,
+  configureCloudSync: desktopOnly,
+  disableCloudSync: desktopOnly,
+  syncCloud: desktopOnly,
+  discoverSubscriptions: desktopOnly,
+  subscribe: desktopOnly,
+  updateSubscription: desktopOnly,
+  unsubscribe: desktopOnly,
+  syncSubscription: desktopOnly,
+  favorites: desktopOnly,
+  preview: desktopOnly,
+  releasePreview: async () => {},
+  start: desktopOnly,
+  stop: desktopOnly,
+  pause: desktopOnly,
+  next: desktopOnly,
+  openVideo: desktopOnly,
+  onState: () => () => {},
+};
+export const qualityName = (quality: number) =>
+  ({ 16: '360P', 32: '480P', 64: '720P', 74: '720P 60', 80: '1080P', 120: '4K' })[quality] || '自动';
+export const duration = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;

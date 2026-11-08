@@ -1,0 +1,197 @@
+/* The desktop composition follows docs/design-concept.png at 1488 × 1058. */
+@media (min-width: 1200px) {
+  .app-shell {
+    grid-template-columns: 248px minmax(0, 1fr);
+  }
+  .sidebar {
+    width: 248px;
+    padding: 58px 10px 28px;
+  }
+  .brand {
+    font-size: 32px;
+    gap: 14px;
+    padding: 0 20px;
+  }
+  .brand svg {
+    width: 43px;
+    height: 43px;
+  }
+  nav {
+    margin-top: 45px;
+    gap: 5px;
+  }
+  .nav-item {
+    font-size: 19px;
+    padding: 17px 22px;
+    gap: 20px;
+  }
+  .nav-item svg {
+    width: 26px;
+    height: 26px;
+  }
+  .main-content {
+    padding: 53px 28px 24px;
+  }
+  h1 {
+    font-size: 36px;
+    line-height: 1.35;
+  }
+  .page-header p {
+    font-size: 18px;
+    margin-top: 5px;
+  }
+  .page-header {
+    margin-bottom: 26px;
+  }
+  .page-header > .button {
+    min-height: 52px;
+    padding: 12px 28px;
+    font-size: 18px;
+  }
+  .page-header > .button svg {
+    width: 23px;
+    height: 23px;
+  }
+  .hero-grid {
+    grid-template-columns: minmax(0, 1.42fr) minmax(330px, 1fr);
+    gap: 20px;
+  }
+  .control-panel {
+    min-height: 0;
+    padding: 17px 21px 20px;
+  }
+  .control-panel h2 {
+    font-size: 25px;
+    margin-bottom: 10px;
+  }
+  .control-row {
+    font-size: 17px;
+    min-height: 40px;
+    margin: 8px 0;
+  }
+  .control-row > span:first-child {
+    gap: 15px;
+  }
+  .control-row > span:first-child svg {
+    width: 23px;
+    height: 23px;
+  }
+  .control-row select {
+    font-size: 16px;
+    min-height: 42px;
+  }
+  .status {
+    font-size: 14px;
+  }
+  .volume-row {
+    margin-top: 12px;
+  }
+  .wallpaper-actions {
+    padding-top: 22px;
+  }
+  .wallpaper-actions > .button {
+    min-height: 52px;
+    font-size: 18px;
+  }
+  .preview-caption {
+    font-size: 15px;
+    margin-top: 11px;
+  }
+  .preview-caption .subtle svg {
+    width: 18px;
+    height: 18px;
+  }
+  .quick-add {
+    margin-top: 40px;
+    margin-bottom: 26px;
+    gap: 16px;
+  }
+  .input-with-icon {
+    min-height: 54px;
+    padding: 0 19px;
+    gap: 17px;
+  }
+  .input-with-icon input {
+    font-size: 16px;
+  }
+  .quick-add > .button {
+    min-width: 142px;
+    font-size: 17px;
+  }
+  .section-heading h2 {
+    font-size: 25px;
+  }
+  .section-heading > div > span {
+    font-size: 15px;
+  }
+  .section-heading {
+    margin-bottom: 17px;
+  }
+  .empty-playlist {
+    min-height: 252px;
+    padding: 27px 20px 21px;
+  }
+  .empty-monitor {
+    height: 62px;
+    margin-bottom: 14px;
+  }
+  .empty-monitor > svg:first-child {
+    width: 68px;
+    height: 62px;
+  }
+  .empty-monitor > svg + svg {
+    top: 18px;
+    left: 25px;
+    width: 20px;
+    height: 20px;
+  }
+  .empty-playlist h3 {
+    font-size: 21px;
+  }
+  .empty-playlist p {
+    font-size: 16px;
+    margin-top: 12px;
+    margin-bottom: 18px;
+  }
+  .empty-playlist .button {
+    font-size: 16px;
+    min-height: 42px;
+    padding: 8px 24px;
+  }
+  .footnote {
+    font-size: 13px;
+  }
+  .account {
+    margin: 0 9px;
+    width: calc(100% - 18px);
+    padding-top: 24px;
+    gap: 16px;
+  }
+  .avatar {
+    width: 44px;
+    height: 44px;
+  }
+  .account strong {
+    font-size: 16px;
+  }
+  .account span {
+    font-size: 14px;
+  }
+  .platform-note {
+    padding-left: 20px;
+  }
+}
+input[type='range'] {
+  appearance: none;
+  background: #dadde5;
+  border-radius: 4px;
+}
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #d3d7df;
+  box-shadow: 0 1px 3px #0002;
+}

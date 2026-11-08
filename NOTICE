@@ -1,0 +1,12 @@
+BiliDesk
+Copyright 2026 Cance1ed and BiliDesk contributors.
+
+Licensed under the Apache License, Version 2.0.
+
+BiliDesk is an independent project and is not affiliated with or endorsed by
+Bilibili. Bilibili names and marks belong to their respective owners.
+
+Third-party components retain their own licenses; see THIRD_PARTY_NOTICES.txt.
+The bundled Alpine preview and design concept are AI-generated illustrations.
+Test videos in tests/fixtures are original synthetic test media, not Bilibili
+downloads. Screenshots showing fixture accounts contain synthetic data.
