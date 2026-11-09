@@ -86,19 +86,34 @@ function attachWindows(win, physicalBounds) {
     throw new Error('无法设置壁纸窗口大小');
   return () => api.valid(worker);
 }
-function attachMac(win) {
+// CGWindowLevelKey values from CoreGraphics/CGWindowLevel.h.
+const kCGDesktopWindowLevelKey = 2;
+const kCGDesktopIconWindowLevelKey = 18;
+let macApi;
+function macosApi() {
+  if (macApi) return macApi;
   const koffi = require('koffi');
   const objc = koffi.load('/usr/lib/libobjc.A.dylib');
   const graphics = koffi.load('/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics');
-  const selector = objc.func('void *sel_registerName(const char *name)');
-  const getWindow = objc.func('objc_msgSend', 'void *', ['void *', 'void *']);
-  const setLevel = objc.func('objc_msgSend', 'void', ['void *', 'void *', 'long']);
-  const level = graphics.func('int32 CGWindowLevelForKey(int key)');
-  const view = win.getNativeWindowHandle().readBigUInt64LE();
-  const window = getWindow(view, selector('window'));
+  macApi = {
+    selector: objc.func('void *sel_registerName(const char *name)'),
+    getWindow: objc.func('objc_msgSend', 'void *', ['void *', 'void *']),
+    getLevel: objc.func('objc_msgSend', 'long', ['void *', 'void *']),
+    setLevel: objc.func('objc_msgSend', 'void', ['void *', 'void *', 'long']),
+    level: graphics.func('int32 CGWindowLevelForKey(int key)'),
+  };
+  return macApi;
+}
+function macWindow(win) {
+  const api = macosApi();
+  const window = api.getWindow(win.getNativeWindowHandle().readBigUInt64LE(), api.selector('window'));
   if (!window) throw new Error('无法取得 macOS 桌面窗口');
+  return { api, window };
+}
+function attachMac(win) {
+  const { api, window } = macWindow(win);
   // Above the static wallpaper, below Finder's desktop icons.
-  setLevel(window, selector('setLevel:'), level(20) + 1);
+  api.setLevel(window, api.selector('setLevel:'), api.level(kCGDesktopWindowLevelKey) + 1);
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false, skipTransformProcessType: true });
   return () => true;
 }
@@ -108,6 +123,14 @@ function attachDesktop(win, physicalBounds) {
   throw new Error('动态壁纸目前支持 Windows 和 macOS');
 }
 function inspectDesktopBounds(win) {
+  if (process.platform === 'darwin') {
+    const { api, window } = macWindow(win);
+    return {
+      level: Number(api.getLevel(window, api.selector('level'))),
+      desktopLevel: api.level(kCGDesktopWindowLevelKey),
+      iconLevel: api.level(kCGDesktopIconWindowLevelKey),
+    };
+  }
   if (process.platform !== 'win32') return null;
   const api = windowsApi(),
     handle = win.getNativeWindowHandle().readBigUInt64LE();

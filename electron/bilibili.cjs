@@ -209,12 +209,17 @@ class BilibiliClient {
       .filter((v) => v.codecid === 7 && v.id <= quality)
       .sort((a, b) => b.id - a.id || b.bandwidth - a.bandwidth);
     const audio = (data.dash?.audio || []).sort((a, b) => b.bandwidth - a.bandwidth)[0];
-    const videoUrl = (videos[0]?.baseUrl || videos[0]?.base_url || data.durl?.[0]?.url)?.replace(
-      /^http:/,
-      'https:',
-    );
-    const audioUrl = (audio?.baseUrl || audio?.base_url)?.replace(/^http:/, 'https:');
-    if (!videoUrl || !isMediaUrl(videoUrl) || (audioUrl && !isMediaUrl(audioUrl)))
+    // Primary URLs may point at PCDN hosts on custom ports; fall back to the CDN mirrors.
+    const pick = (entry) =>
+      [entry?.baseUrl || entry?.base_url, ...(entry?.backupUrl || entry?.backup_url || [])]
+        .filter((url) => typeof url === 'string')
+        .map((url) => url.replace(/^http:/, 'https:'))
+        .find(isMediaUrl);
+    const videoUrl = videos.length
+      ? pick(videos[0])
+      : pick({ baseUrl: data.durl?.[0]?.url, backupUrl: data.durl?.[0]?.backup_url });
+    const audioUrl = audio ? pick(audio) : undefined;
+    if (!videoUrl || (audio && !audioUrl))
       throw new Error('没有可播放的视频流，可能需要登录或当前账号没有权限');
     return {
       videoUrl,

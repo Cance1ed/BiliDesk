@@ -101,6 +101,37 @@ test('stream chooses highest available H264 within requested quality and keeps a
   assert.equal(stream.quality, 64);
   assert.equal(stream.audioUrl, 'https://a.bilivideo.com/audio');
 });
+test('stream falls back to backup mirrors when the primary media URL is rejected', async () => {
+  const client = new BilibiliClient(async () =>
+    json({
+      dash: {
+        video: [
+          {
+            id: 16,
+            codecid: 7,
+            baseUrl: 'https://x.mcdn.bilivideo.cn:8082/video',
+            backupUrl: ['https://upos.bilivideo.com/video'],
+          },
+        ],
+        audio: [
+          {
+            bandwidth: 100,
+            base_url: 'https://x.mcdn.bilivideo.cn:8082/audio',
+            backup_url: ['https://evil.example/audio', 'http://upos.bilivideo.com/audio'],
+          },
+        ],
+      },
+    }),
+  );
+  client.wbi = {
+    img_url: `https://a/${'a'.repeat(32)}.png`,
+    sub_url: `https://a/${'b'.repeat(32)}.png`,
+    time: Date.now(),
+  };
+  const stream = await client.stream({ bvid: 'BV1xx411c7mD', cid: 1 }, 80);
+  assert.equal(stream.videoUrl, 'https://upos.bilivideo.com/video');
+  assert.equal(stream.audioUrl, 'https://upos.bilivideo.com/audio');
+});
 test('favorites pagination and invalid items are handled', async () => {
   let requested;
   const client = new BilibiliClient(async (url) => {
