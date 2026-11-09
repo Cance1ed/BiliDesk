@@ -5,7 +5,14 @@ const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 const packaged = process.argv.includes('--packaged');
 const child = spawn(
-  packaged ? path.resolve('release/win-unpacked/BiliDesk.exe') : electron,
+  packaged
+    ? path.resolve(
+        process.env.BILIDESK_RELEASE_DIR || 'release',
+        process.platform === 'darwin'
+          ? `mac${process.arch === 'arm64' ? '-arm64' : ''}/BiliDesk.app/Contents/MacOS/BiliDesk`
+          : 'win-unpacked/BiliDesk.exe',
+      )
+    : electron,
   [
     ...(packaged ? [] : ['.']),
     '--smoke-test',
