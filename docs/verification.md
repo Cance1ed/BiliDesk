@@ -2,6 +2,19 @@
 
 日期：2026-11-08。环境：Windows 11 x64，Node.js 24，Electron 45。
 
+## 0.6.0 macOS 支持与界面重设计
+
+日期：2026-11-09。环境：macOS（Apple 芯片，arm64），Node.js 26，Electron 45.2.3。
+
+- 播放修复：Bilibili 主地址为带端口的 PCDN（如 `*.mcdn.bilivideo.cn:8082`）时改用 `backupUrl` 镜像；此前该网络环境下所有视频均无法播放。新增回归测试。
+- macOS 壁纸层级修复：原先使用 `CGWindowLevelForKey(20)`（辅助功能最高层，1500），壁纸覆盖所有窗口和程序坞。改为桌面层 +1。播放冒烟测试读取真实 `NSWindow` 层级并断言位于桌面与桌面图标之间：旧代码失败（1501），修复后通过（−2147483622）。实机窗口列表顺序：系统墙纸 < BiliDesk < Finder 桌面图标 < 普通窗口 < 程序坞。
+- 安装包体积：渲染层依赖改为 devDependencies（已由 Vite 打包），`app.asar` 由 34 MB 降至 3.4 MB；第三方许可声明输出逐字节一致。
+- 界面：macOS 风格浅色 / 深色语义色、半透明侧栏（vibrancy）、内嵌红绿灯、按压反馈及可打断的过渡动效；遵循减弱动态效果、降低透明度和增强对比度。Electron 窗口内通过 DevTools 实测动效时序、深色模式和减弱动态效果。
+- 发布包从 `git archive` 导出的干净源码树构建（`node_modules` 为真实目录），ad-hoc 签名，`codesign --verify --deep --strict` 通过，`koffi.node` 位于 `app.asar.unpacked`。
+- 将 DMG 中的 App 复制安装后运行 `node scripts/smoke.mjs --packaged --subscriptions --playback --portrait` 通过：收藏夹订阅导入 28 个；真实视频播放 2.08 秒 / 34 帧；壁纸层级断言通过；竖屏三联像素一致、四联 / 关闭 / 恢复 / 横屏回退通过。`npm test` 47 项通过。
+- `BiliDesk-0.6.0-mac-arm64.dmg` SHA-256：`99a095d844171029ba6827c608c5b038f03a8583f37323e3c22a1cc29310bc05`。
+- 尚未验证：原生侧栏材质与红绿灯的实际观感（无屏幕录制权限，仅能截取网页层）、Spaces / 全屏 App、锁屏 / 睡眠 / 电池暂停、Intel Mac、Windows 版 0.6.0、真实账号登录与收藏写入。
+
 ## 0.5.1 托盘图标
 
 - 托盘直接复用应用的 `dist/icon.png` 彩色资源，Windows 缩放为 24×24，macOS 为 22×22，不再使用另绘的线框图标。

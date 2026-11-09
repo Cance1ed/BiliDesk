@@ -11,7 +11,7 @@
   padding: 10px 18px;
   background: transparent;
   font-size: 14px;
-  color: #858c98;
+  color: var(--label-3);
 }
 .favorite-tabs button[aria-selected='true'] {
   background: var(--accent-soft);
@@ -34,7 +34,7 @@
   font-size: 20px;
 }
 .subscription-heading p {
-  color: #848b97;
+  color: var(--label-3);
   font-size: 13px;
   margin-top: 7px;
   line-height: 1.7;
@@ -60,7 +60,7 @@
   font-size: 13px;
 }
 .subscription-hint {
-  color: #9097a3;
+  color: var(--label-3);
   font-size: 11px;
   line-height: 1.9;
   margin-top: 11px;
@@ -79,11 +79,11 @@
   gap: 10px;
   font-size: 12px;
   margin-bottom: 9px;
-  color: #727987;
+  color: var(--label-3);
 }
 .subscription-selection small {
   font-size: 11px;
-  color: #9aa0aa;
+  color: var(--label-4);
 }
 .subscription-selection select {
   width: 100%;
@@ -94,20 +94,20 @@
   margin-bottom: 0;
 }
 .subscription-empty {
-  border: 1px dashed #dce0e7;
+  border: 1px dashed var(--separator-strong);
   border-radius: 10px;
   min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #a6aeba;
+  color: var(--label-4);
   text-align: center;
   padding: 25px;
 }
 .subscription-empty h3 {
   font-size: 16px;
-  color: #727c8a;
+  color: var(--label-3);
   margin: 18px 0 10px;
 }
 .subscription-empty p {
@@ -143,13 +143,13 @@
 }
 .subscription-identity p {
   font-size: 11px;
-  color: #9098a4;
+  color: var(--label-3);
   margin-top: 7px;
   line-height: 1.5;
 }
 .subscription-meta {
   font-size: 11px;
-  color: #858d99;
+  color: var(--label-3);
   margin: 17px 0;
 }
 .subscription-actions {
@@ -169,7 +169,7 @@
 }
 .subscription-error {
   font-size: 12px;
-  color: #bd6555;
+  color: var(--red);
   line-height: 1.8;
   margin-bottom: 16px;
   display: flex;

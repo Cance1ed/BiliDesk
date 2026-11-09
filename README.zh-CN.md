@@ -3,12 +3,15 @@
   <h1>BiliDesk</h1>
   <p>让喜欢的 Bilibili 视频，成为桌面的风景。</p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
 </div>
 
 基于 Electron 的动态壁纸应用，支持 Bilibili 播放列表、收藏夹订阅、合集导入和同步竖屏三联 / N 联效果。当前应用界面为简体中文。
 
-![BiliDesk 桌面界面](docs/screenshot-desktop.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-desktop-dark.png" />
+  <img src="docs/screenshot-desktop.png" alt="BiliDesk 桌面界面" />
+</picture>
 
 ## 功能
 
@@ -19,6 +22,7 @@
 - **订阅合集**：读取账号收藏 / 订阅的合集，整合集导入或跨页勾选部分视频。
 - **保存到账号收藏夹**：可以新建收藏夹（默认私密），或明确选择已有收藏夹追加保存；同名新建会被拦截，不复用、覆盖或删除已有收藏夹及其内容。
 - **竖屏自动联屏**：普通 16:9 屏幕上自动三联，也可指定 2～8 联；各列共用一个视频解码器和一份声音。
+- **原生质感界面**：macOS 风格设计，跟随系统浅色 / 深色外观；macOS 上侧栏为半透明材质；动效短促、可随时打断，并遵循「减弱动态效果」「降低透明度」「增强对比度」设置。
 - **桌面控制**：顺序 / 随机 / 单曲循环，屏幕选择、音量、画面适配、定时切换、托盘控制、锁屏 / 睡眠暂停、可选电池暂停。
 
 ![多播放列表与新建收藏夹，使用模拟账号数据](docs/screenshot-playlists.png)
@@ -29,15 +33,16 @@
 
 ## 下载与平台状态
 
-**[下载 Windows x64 v0.5.1](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)**：早期预览版，Release 附 SHA-256 校验文件。
+**[下载 macOS（Apple 芯片）v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** · **[Windows x64（v0.5.1）](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)**：早期预览版，各 Release 均附 SHA-256 校验文件。
 
-| 平台                        | 状态                                                 |
-| --------------------------- | ---------------------------------------------------- |
-| Windows 11 x64              | 已构建安装包，实测桌面挂载、播放、完整覆盖和竖屏联屏 |
-| Windows 10 / 多屏混合 DPI   | 尚未完整验证                                         |
-| macOS Apple Silicon / Intel | 已有适配和构建配置，尚无已验证的 Mac 发布包          |
+| 平台                      | 状态                                                                      |
+| ------------------------- | ------------------------------------------------------------------------- |
+| macOS Apple 芯片          | v0.6.0 DMG 已构建并实测：壁纸位于桌面图标之下、播放、竖屏联屏、收藏夹订阅 |
+| Windows 11 x64            | v0.5.1 安装包已实测；v0.6.0 Windows 版将在 Windows 设备上构建后补充       |
+| macOS Intel               | 尚未构建和测试                                                            |
+| Windows 10 / 多屏混合 DPI | 尚未完整验证                                                              |
 
-安装包当前未签名，macOS 签名与公证尚未配置。升级前从托盘退出旧版，本机配置会保留。
+安装包未签名，macOS 版未经公证。首次打开时 macOS 会提示无法验证该 App：前往「系统设置 → 隐私与安全性」，在 BiliDesk 旁点「仍要打开」并确认。升级前从托盘退出旧版，本机配置会保留。
 
 ## 快速开始
 
@@ -89,7 +94,7 @@ npm run test:playback
 node scripts/smoke.mjs --packaged --playback --portrait
 ```
 
-联网 / 播放测试使用公开 Bilibili 内容及隔离临时数据，会短暂挂载壁纸并在结束后恢复桌面。竖屏测试使用原创本地合成视频。打包测试需先构建 Windows 包，并从仓库根目录执行。
+联网 / 播放测试使用公开 Bilibili 内容及隔离临时数据，会短暂挂载壁纸并在结束后恢复桌面。竖屏测试使用原创本地合成视频。打包测试需先构建安装包，并从仓库根目录执行；构建输出不在 `release/` 时设置 `BILIDESK_RELEASE_DIR`。在 macOS 上，播放测试还会检查壁纸窗口位于桌面与桌面图标之间。
 
 更多信息见[验证记录](docs/verification.md)、[详细使用说明](docs/guide.zh-CN.md)及 `.github` 下的桌面构建配置。
 
@@ -100,7 +105,7 @@ node scripts/smoke.mjs --packaged --playback --portrait
 - Cookie 留在 Electron 主进程，通过 `safeStorage` 使用系统加密；系统加密不可用时只保留当次登录。
 - 数据目录：Windows `%APPDATA%/BiliDesk`；macOS `~/Library/Application Support/BiliDesk`。`library.json` 保存列表、设置、订阅与同步目标；`account.enc` 保存加密凭据。
 - Bilibili 网页接口可能变更或限制请求；私有、付费、地区限制和会员内容仍受账号权限约束，应用不绕过访问控制。
-- 已验证公开接口、Windows 播放及联屏。**真实账号扫码确认、私有 / VIP 内容及收藏写入仍需账号验收**；收藏写入使用模拟传输测试，尚未使用个人账号实测。
+- 已在 Windows 11 和 macOS（Apple 芯片）上验证公开接口、播放及联屏。**真实账号扫码确认、私有 / VIP 内容及收藏写入仍需账号验收**；收藏写入使用模拟传输测试，尚未使用个人账号实测。
 - 一次支持一个所选显示器，不包含离线缓存、直播、番剧、HDR / HEVC、前台全屏应用自动暂停。
 - 阿尔卑斯山预览是 AI 生成的示意素材，不是预置 Bilibili 视频。测试截图及测试片已标注为合成数据。
 

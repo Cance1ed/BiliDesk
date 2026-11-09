@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 export function Modal({
   title,
@@ -12,11 +12,17 @@ export function Modal({
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [closing, setClosing] = useState(false);
+  // Play the exit (same path as the entrance) before unmounting.
+  const requestClose = useCallback(() => {
+    setClosing(true);
+    setTimeout(close, 200);
+  }, [close]);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement;
     ref.current?.querySelector<HTMLElement>('input, textarea, button')?.focus();
     const handler = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
+      if (event.key === 'Escape') requestClose();
       if (event.key !== 'Tab') return;
       const elements = Array.from(
         ref.current?.querySelectorAll<HTMLElement>(
@@ -38,12 +44,13 @@ export function Modal({
       document.removeEventListener('keydown', handler);
       previous?.focus();
     };
-  }, [close]);
+  }, [requestClose]);
   return (
     <div
       className="modal-backdrop"
+      data-closing={closing ? '' : undefined}
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) close();
+        if (e.target === e.currentTarget) requestClose();
       }}
     >
       <div
@@ -55,7 +62,7 @@ export function Modal({
       >
         <div className="modal-heading">
           <h2>{title}</h2>
-          <button className="icon-button" aria-label="关闭弹窗" onClick={close}>
+          <button className="icon-button" aria-label="关闭弹窗" onClick={requestClose}>
             <X size={20} />
           </button>
         </div>

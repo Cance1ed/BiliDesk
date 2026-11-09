@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   Monitor,
   Image as ImageIcon,
@@ -35,6 +35,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { api, duration, qualityName } from './api';
+import { version } from '../package.json';
 import type { Snapshot, Settings, Stream, Folder, Favorite, AddResult } from './types';
 import { Modal } from './Modal';
 import { Login } from './Login';
@@ -245,6 +246,12 @@ export default function App() {
         {notice && <p role="alert">{notice.text}</p>}
       </div>
     );
+  const navItems = [
+    { id: 'wallpapers', label: '我的壁纸', icon: ImageIcon },
+    { id: 'favorites', label: '收藏夹', icon: Star },
+    { id: 'collections', label: '订阅合集', icon: Layers },
+    { id: 'settings', label: '播放设置', icon: SlidersHorizontal },
+  ];
   const filtered = state.playlist.filter((v) =>
     `${v.title} ${v.owner} ${v.bvid}`.toLowerCase().includes(query.toLowerCase()),
   );
@@ -263,13 +270,11 @@ export default function App() {
           <Monitor size={35} strokeWidth={1.9} />
           <span>BiliDesk</span>
         </a>
-        <nav aria-label="主导航">
-          {[
-            { id: 'wallpapers', label: '我的壁纸', icon: ImageIcon },
-            { id: 'favorites', label: '收藏夹', icon: Star },
-            { id: 'collections', label: '订阅合集', icon: Layers },
-            { id: 'settings', label: '播放设置', icon: SlidersHorizontal },
-          ].map((item) => (
+        <nav
+          aria-label="主导航"
+          style={{ '--nav-index': navItems.findIndex((i) => i.id === tab) } as CSSProperties}
+        >
+          {navItems.map((item) => (
             <button
               key={item.id}
               className={`nav-item ${tab === item.id ? 'selected' : ''}`}
@@ -313,7 +318,7 @@ export default function App() {
           </button>
         </div>
       </aside>
-      <main className="main-content">
+      <main className="main-content page" key={tab}>
         <header className="page-header">
           <div>
             <h1>
@@ -385,6 +390,7 @@ export default function App() {
                   ) : (
                     <>
                       <img
+                        key={selected?.id || 'placeholder'}
                         className="preview-image"
                         src={selected?.cover || './alpine.png'}
                         alt={selected ? selected.title : '阳光下的阿尔卑斯山绿色草甸，壁纸预览示意图'}
@@ -486,6 +492,7 @@ export default function App() {
                     min="0"
                     max="100"
                     value={volume}
+                    style={{ '--value': `${volume}%` } as CSSProperties}
                     onChange={(e) => setVolume(Number(e.target.value))}
                     onPointerUp={() => patchSettings({ volume })}
                     onKeyUp={() => patchSettings({ volume })}
@@ -607,12 +614,13 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="video-list">
+                <div className="video-list" data-stagger={query ? undefined : ''}>
                   {filtered.length ? (
                     filtered.map((video, index) => (
                       <article
                         className={`video-row ${selected?.id === video.id ? 'current' : ''}`}
                         key={video.id}
+                        style={{ '--i': Math.min(index, 10) } as CSSProperties}
                       >
                         <button
                           className="video-select"
@@ -1067,25 +1075,14 @@ export default function App() {
             <div className="about">
               <Monitor size={23} />
               <strong>BiliDesk</strong>
-              <span>0.5.1</span>
+              <span>{version}</span>
               <p>为喜欢的画面，留一个位置。</p>
               <small>非 Bilibili 官方客户端 · Windows / macOS</small>
             </div>
           </div>
         )}
       </main>
-      {notice && (
-        <div
-          className={`toast ${notice.error ? 'toast-error' : ''}`}
-          role={notice.error ? 'alert' : 'status'}
-        >
-          {notice.error ? <Info size={19} /> : <Check size={19} />}
-          <span>{notice.text}</span>
-          <button aria-label="关闭提示" className="icon-button" onClick={() => setNotice(null)}>
-            <X size={17} />
-          </button>
-        </div>
-      )}
+      <Toast notice={notice} dismiss={() => setNotice(null)} />
       {modal === 'add' && (
         <Modal title="添加视频" close={closeModal} wide>
           <p className="modal-description">
@@ -1133,6 +1130,31 @@ export default function App() {
           <Login success={loginSuccess} />
         </Modal>
       )}
+    </div>
+  );
+}
+type Notice = { text: string; error?: boolean } | null;
+// Keeps the last notice mounted while it transitions out along the path it came in on.
+function Toast({ notice, dismiss }: { notice: Notice; dismiss(): void }) {
+  const [shown, setShown] = useState<Notice>(notice);
+  useEffect(() => {
+    if (notice) setShown(notice);
+  }, [notice]);
+  if (!shown) return null;
+  return (
+    <div
+      className={`toast ${shown.error ? 'toast-error' : ''}`}
+      role={shown.error ? 'alert' : 'status'}
+      data-leaving={notice ? undefined : ''}
+      onTransitionEnd={(e) => {
+        if (!notice && e.target === e.currentTarget && e.propertyName === 'opacity') setShown(null);
+      }}
+    >
+      {shown.error ? <Info size={19} /> : <Check size={19} />}
+      <span>{shown.text}</span>
+      <button aria-label="关闭提示" className="icon-button" onClick={dismiss}>
+        <X size={17} />
+      </button>
     </div>
   );
 }

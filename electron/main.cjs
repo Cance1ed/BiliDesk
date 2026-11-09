@@ -127,6 +127,16 @@ async function createMain() {
     title: 'BiliDesk',
     icon: path.join(root, 'dist', 'icon.png'),
     autoHideMenuBar: true,
+    // macOS: translucent sidebar material behind the web content, traffic lights inset over it.
+    ...(process.platform === 'darwin'
+      ? {
+          titleBarStyle: 'hiddenInset',
+          trafficLightPosition: { x: 18, y: 18 },
+          vibrancy: 'sidebar',
+          visualEffectState: 'followWindow',
+          backgroundColor: '#00000000',
+        }
+      : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
