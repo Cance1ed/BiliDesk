@@ -42,7 +42,7 @@ Tiling uses actual video dimensions and preserves aspect ratio; slight cropping 
 | macOS Intel                                 | Not built or tested                                                                                        |
 | Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                                        |
 
-Installers are unsigned, and the macOS app is not notarized. On first launch, macOS will block it: Control-click **BiliDesk** in Applications, choose **Open**, then confirm (or use **System Settings → Privacy & Security → Open Anyway**). Exit the previous version from the tray before upgrading; local configuration is retained.
+Installers are unsigned, and the macOS app is not notarized. On first launch macOS reports that it cannot verify the app: open **System Settings → Privacy & Security**, click **Open Anyway** next to BiliDesk, and confirm. Exit the previous version from the tray before upgrading; local configuration is retained.
 
 ## Getting started
 
