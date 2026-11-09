@@ -46,12 +46,12 @@
   min-height: 42px;
   padding: 10px 12px;
   font: inherit;
-  background: white;
+  background: var(--surface);
 }
 .playlist-dialog p {
   font-size: 13px;
   line-height: 1.9;
-  color: #788391;
+  color: var(--label-3);
   margin: 10px 0 20px;
 }
 .playlist-dialog-actions {
@@ -72,7 +72,7 @@
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: #788391;
+  color: var(--label-3);
 }
 .cloud-new-folder .subscription-hint {
   width: 100%;
@@ -94,7 +94,7 @@
 }
 .collection-toolbar p {
   font-size: 13px;
-  color: #8b93a0;
+  color: var(--label-3);
   line-height: 1.8;
 }
 .collections-page .folder-list .pagination {
@@ -117,7 +117,7 @@
   border: 1px solid var(--line);
   border-radius: 10px;
   margin: 23px 0 30px;
-  background: #fff;
+  background: var(--surface);
 }
 .cloud-panel summary {
   cursor: pointer;
@@ -142,7 +142,7 @@
   color: var(--accent);
 }
 .cloud-summary {
-  color: #8c94a1;
+  color: var(--label-3);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -153,7 +153,7 @@
 .cloud-body > p,
 .cloud-login p {
   font-size: 12px;
-  color: #808997;
+  color: var(--label-3);
   line-height: 1.8;
   margin: 16px 0;
 }
@@ -178,7 +178,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #74808e;
+  color: var(--label-3);
 }
 .cloud-body .cloud-status {
   font-size: 11px;
