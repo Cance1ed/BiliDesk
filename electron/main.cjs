@@ -847,6 +847,12 @@ async function initialize() {
           )
             throw new Error('Wallpaper client area does not cover the display');
         }
+        if (process.platform === 'darwin') {
+          const layer = inspectDesktopBounds(wallpaperWindow);
+          console.log('BILIDESK_LAYER ' + JSON.stringify(layer));
+          if (!(layer.level > layer.desktopLevel && layer.level < layer.iconLevel))
+            throw new Error('Wallpaper window is not between the desktop and its icons');
+        }
         await mainWindow.webContents.executeJavaScript(`window.bilidesk.pause()`);
         await new Promise((resolve) => setTimeout(resolve, 300));
         const paused = await wallpaperWindow.webContents.executeJavaScript(
