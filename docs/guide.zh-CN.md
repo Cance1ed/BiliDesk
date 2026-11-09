@@ -6,7 +6,7 @@
 
 ## 使用
 
-Windows 安装包：`release/BiliDesk-0.5.1-win-x64.exe`。也可以直接运行 `release/win-unpacked/BiliDesk.exe`，免安装版本需保留整个目录。升级前从托盘退出旧版；本机列表、设置和登录数据会保留。
+macOS（Apple 芯片）：`release/BiliDesk-0.6.0-mac-arm64.dmg`，拖入「应用程序」；未签名，首次打开需按住 Control 点按并选择「打开」。Windows 安装包：`release/BiliDesk-<版本>-win-x64.exe`，也可以直接运行 `release/win-unpacked/BiliDesk.exe`，免安装版本需保留整个目录。升级前从托盘退出旧版；本机列表、设置和登录数据会保留。
 
 1. 在「我的壁纸」粘贴视频链接或 BV / av 号，点击「解析链接」。支持多行批量添加、b23.tv 短链接、带 `?p=2` 的分 P 链接。
 2. 选中视频，点击预览区播放按钮可点播预览；点击「启用动态壁纸」应用到所选显示器。

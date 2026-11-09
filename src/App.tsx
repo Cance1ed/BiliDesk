@@ -35,6 +35,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { api, duration, qualityName } from './api';
+import { version } from '../package.json';
 import type { Snapshot, Settings, Stream, Folder, Favorite, AddResult } from './types';
 import { Modal } from './Modal';
 import { Login } from './Login';
@@ -1074,7 +1075,7 @@ export default function App() {
             <div className="about">
               <Monitor size={23} />
               <strong>BiliDesk</strong>
-              <span>0.5.1</span>
+              <span>{version}</span>
               <p>为喜欢的画面，留一个位置。</p>
               <small>非 Bilibili 官方客户端 · Windows / macOS</small>
             </div>

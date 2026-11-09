@@ -3,12 +3,15 @@
   <h1>BiliDesk</h1>
   <p>Your favorite Bilibili videos, on your desktop.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
 </div>
 
 An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscriptions, collection imports, and synchronized portrait-video tiling. The current application interface is in Simplified Chinese.
 
-![BiliDesk desktop interface](docs/screenshot-desktop.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-desktop-dark.png" />
+  <img src="docs/screenshot-desktop.png" alt="BiliDesk desktop interface" />
+</picture>
 
 ## Features
 
@@ -19,6 +22,7 @@ An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscrip
 - **Subscribed collections:** browse collections saved by your account; import entire collections or select videos across pages.
 - **Save playlists to favorites:** create a new folder (private by default) or explicitly choose an existing folder for append-only saving. Same-name creation is rejected; existing folders and their contents are never replaced or deleted.
 - **Portrait tiling:** automatically repeat portrait video across the desktop, typically three columns on a 16:9 display, or select 2–8 columns. All tiles share one decoded video and audio track.
+- **Native-feeling interface:** a macOS-style design that follows the system light/dark appearance, with a translucent sidebar on macOS and short, interruptible motion that respects Reduce Motion, Reduce Transparency, and Increase Contrast.
 - **Desktop controls:** sequential/shuffle/single looping, display selection, volume, fill/fit modes, timed switching, tray controls, lock/sleep pause, and optional battery pause.
 
 ![Multiple playlists and new favorite folders, using simulated account data](docs/screenshot-playlists.png)
@@ -29,15 +33,16 @@ Tiling uses actual video dimensions and preserves aspect ratio; slight cropping 
 
 ## Download & platform status
 
-**[Download Windows x64 v0.5.1](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)** — early preview; SHA-256 checksums are attached to the release.
+**[Download v0.6.0 for macOS (Apple Silicon)](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** · **[Windows x64 (v0.5.1)](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)** — early previews; SHA-256 checksums are attached to each release.
 
-| Platform                                    | Status                                                                                 |
-| ------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Windows 11 x64                              | Installer built; native attachment, playback, full desktop coverage, and tiling tested |
-| Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                    |
-| macOS Apple Silicon / Intel                 | Adapter and build configuration included; no verified Mac release yet                  |
+| Platform                                    | Status                                                                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| macOS Apple Silicon                         | v0.6.0 DMG built and tested: desktop layering below Finder icons, playback, portrait tiling, subscriptions |
+| Windows 11 x64                              | v0.5.1 installer tested; the v0.6.0 Windows build will follow from a Windows machine                       |
+| macOS Intel                                 | Not built or tested                                                                                        |
+| Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                                        |
 
-Installers are unsigned. macOS signing and notarization are not configured. Exit the previous version from the tray before upgrading; local configuration is retained.
+Installers are unsigned, and the macOS app is not notarized. On first launch, macOS will block it: Control-click **BiliDesk** in Applications, choose **Open**, then confirm (or use **System Settings → Privacy & Security → Open Anyway**). Exit the previous version from the tray before upgrading; local configuration is retained.
 
 ## Getting started
 
@@ -89,7 +94,7 @@ npm run test:playback
 node scripts/smoke.mjs --packaged --playback --portrait
 ```
 
-Live/playback checks use public Bilibili content and isolated temporary data. Playback tests temporarily attach a wallpaper and restore the desktop afterward. Portrait tests use original local synthetic videos. Run packaged checks from the repository root after building the Windows package.
+Live/playback checks use public Bilibili content and isolated temporary data. Playback tests temporarily attach a wallpaper and restore the desktop afterward. Portrait tests use original local synthetic videos. Run packaged checks from the repository root after building a package; set `BILIDESK_RELEASE_DIR` if the build output is not in `release/`. On macOS the playback check also asserts the wallpaper sits between the desktop and its icons.
 
 See [verification notes](docs/verification.md), the [detailed Chinese guide](docs/guide.zh-CN.md), and the desktop build configuration under `.github` for more information.
 
@@ -100,7 +105,7 @@ See [verification notes](docs/verification.md), the [detailed Chinese guide](doc
 - Cookies stay in Electron's main process and are encrypted by the OS through `safeStorage`. If encryption is unavailable, login lasts only for the current session.
 - Data locations: Windows `%APPDATA%/BiliDesk`; macOS `~/Library/Application Support/BiliDesk`. `library.json` contains playlists, settings, subscriptions, and sync targets; `account.enc` contains encrypted credentials.
 - Bilibili web APIs may change or restrict requests. Private, paid, regional, and membership-only content remains subject to account permissions; access controls are not bypassed.
-- Public APIs, Windows playback, and tiling were tested. **Real-account QR confirmation, private/VIP content, and favorite writes still require account acceptance testing.** Writes have been tested with simulated transport, not a personal account.
+- Public APIs, playback, and tiling were tested on Windows 11 and macOS (Apple Silicon). **Real-account QR confirmation, private/VIP content, and favorite writes still require account acceptance testing.** Writes have been tested with simulated transport, not a personal account.
 - One selected display is supported at a time. Offline caching, live streams, bangumi links, HDR/HEVC, and pause for foreground full-screen apps are not included.
 - The Alpine preview is AI-generated illustrative artwork, not a preloaded Bilibili video. Fixture screenshots/videos are labeled synthetic.
 
