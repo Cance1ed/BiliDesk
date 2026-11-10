@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>让喜欢的 Bilibili 视频，成为桌面的风景。</p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.1">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
 </div>
 
 基于 Electron 的动态壁纸应用，支持 Bilibili 播放列表、收藏夹订阅、合集导入和同步竖屏三联 / N 联效果。当前应用界面为简体中文。
@@ -14,6 +14,8 @@
 </picture>
 
 ## 功能
+
+- **启动后自动播放（v0.6.1）**：默认开启，旧配置升级后也默认开启；打开应用即播放当前列表的第一个视频，空列表保持待机，可在播放设置中关闭。「开机启动」仍需单独手动开启。
 
 - **匿名播放**：BV / av 号、视频 URL、b23.tv 短链、指定分 P，支持批量添加、搜索、排序、去重。
 - **多个自定义播放列表**：最多 20 个，支持新建、重命名、复制、切换和删除；各自保存视频、订阅及云端同步目标，复制时不继承订阅和账号同步。
@@ -33,16 +35,18 @@
 
 ## 下载与平台状态
 
-**[下载 macOS（Apple 芯片）v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** · **[Windows x64（v0.5.1）](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.5.1)**：早期预览版，各 Release 均附 SHA-256 校验文件。
+**[Windows x64 v0.6.1](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.1)** · **[macOS（Apple 芯片）v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)**：早期预览版，各 Release 均附 SHA-256 校验文件。原始测试通过的 Windows v0.6.0 安装包也已补充至[对应 Release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)。已发布的 Mac v0.6.0 包不含启动自动播放；共享的 v0.6.1 源码已包含此功能，但尚未在 Mac 上重新构建和验证。
 
-| 平台                      | 状态                                                                      |
-| ------------------------- | ------------------------------------------------------------------------- |
-| macOS Apple 芯片          | v0.6.0 DMG 已构建并实测：壁纸位于桌面图标之下、播放、竖屏联屏、收藏夹订阅 |
-| Windows 11 x64            | v0.5.1 安装包已实测；v0.6.0 Windows 版将在 Windows 设备上构建后补充       |
-| macOS Intel               | 尚未构建和测试                                                            |
-| Windows 10 / 多屏混合 DPI | 尚未完整验证                                                              |
+| 平台                      | 状态                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------- |
+| macOS Apple 芯片          | v0.6.0 DMG 已构建并实测：壁纸位于桌面图标之下、播放、竖屏联屏、收藏夹订阅                 |
+| Windows 11 x64            | v0.6.0、v0.6.1 安装包已构建并实测：播放、桌面全覆盖、竖屏联屏、订阅及 v0.6.1 启动自动播放 |
+| macOS Intel               | 尚未构建和测试                                                                            |
+| Windows 10 / 多屏混合 DPI | 尚未完整验证                                                                              |
 
 安装包未签名，macOS 版未经公证。首次打开时 macOS 会提示无法验证该 App：前往「系统设置 → 隐私与安全性」，在 BiliDesk 旁点「仍要打开」并确认。升级前从托盘退出旧版，本机配置会保留。
+
+**Windows 验证（2026-11-10）**：v0.6.0 通过 47 项离线测试，v0.6.1 通过 48 项；两个最终包均通过公开订阅导入（28 个视频）、真实媒体播放、2560×1440 桌面全覆盖和竖屏联屏回归。v0.6.1 另外验证了默认开启、关闭和空列表三种启动场景，全程未手动调用播放；原生 Windows 界面已检查新增开关及关闭选择的持久化。详见[验证记录](docs/verification.md)。
 
 ## 快速开始
 
@@ -54,6 +58,14 @@
 6. 在「播放设置 → 竖屏视频联屏」选择自动、固定列数或关闭。
 
 关闭管理窗口后应用保留在托盘，可暂停、下一首、停止或退出；停止 / 退出恢复底层桌面。
+
+### 启动后自动播放
+
+v0.6.1 的「播放设置 → 系统与性能 → 启动后自动播放」默认开启。每次启动应用时，从上次保存的当前列表第一个视频开始，沿用已保存的播放设置。空列表不会报错；首次添加视频后仍需点击「启用动态壁纸」。关闭开关后会记住选择，下次启动保持待机；同一次运行中手动停止、切换列表不会再次触发自动播放。已有电池、锁屏和睡眠暂停机制继续生效。
+
+「开机启动」仍默认关闭；手动开启后，登录系统会启动托盘程序，再按「启动后自动播放」决定是否播放。不会恢复上次播放的时间点。
+
+![Windows 测试实例中的自动播放设置](docs/screenshot-autoplay-windows.png)
 
 ### 同步规则
 
@@ -92,6 +104,9 @@ npm run licenses         # 更新已安装的生产依赖许可声明
 npm run test:live
 npm run test:playback
 node scripts/smoke.mjs --packaged --playback --portrait
+node scripts/smoke.mjs --packaged --startup=enabled
+node scripts/smoke.mjs --packaged --startup=disabled
+node scripts/smoke.mjs --packaged --startup=empty
 ```
 
 联网 / 播放测试使用公开 Bilibili 内容及隔离临时数据，会短暂挂载壁纸并在结束后恢复桌面。竖屏测试使用原创本地合成视频。打包测试需先构建安装包，并从仓库根目录执行；构建输出不在 `release/` 时设置 `BILIDESK_RELEASE_DIR`。在 macOS 上，播放测试还会检查壁纸窗口位于桌面与桌面图标之间。

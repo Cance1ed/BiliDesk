@@ -45,6 +45,7 @@ function Fixture() {
             quality: 80,
             pauseOnBattery: true,
             launchAtLogin: false,
+            autoPlayOnLaunch: true,
           }}
           paused={paused}
           controls

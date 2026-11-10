@@ -31,6 +31,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 const devUrl = !app.isPackaged && process.env.BILIDESK_DEV_URL;
 const smoke = process.argv.includes('--smoke-test');
+const startupSmoke = smoke && process.argv.find((arg) => arg.startsWith('--smoke-startup='))?.split('=')[1];
 app.setPath('userData', path.join(app.getPath('appData'), 'BiliDesk'));
 if (smoke) app.setPath('userData', path.join(app.getPath('temp'), `bilidesk-smoke-${process.pid}`));
 let mainWindow, wallpaperWindow, tray, store, bili, authSession, mediaSession, subscriptions, cloudSync;
@@ -341,7 +342,11 @@ function handle(name, fn) {
 }
 async function initialize() {
   store = new Store(app.getPath('userData'));
+  if (startupSmoke)
+    await require(path.join(process.cwd(), 'scripts', 'startup-smoke.cjs')).seed(store, startupSmoke);
   library = await store.load();
+  const startupPlaylistId = library.activePlaylistId,
+    startupVideoId = library.playlist[0]?.id;
   authSession = session.fromPartition('bilidesk-auth');
   mediaSession = session.fromPartition('bilidesk-media');
   for (const s of [session.defaultSession, authSession, mediaSession]) {
@@ -727,12 +732,33 @@ async function initialize() {
   screen.on('display-added', displayChanged);
   screen.on('display-removed', displayChanged);
   screen.on('display-metrics-changed', displayChanged);
+  // Once per launch, after restoring credentials and registering player/power handlers.
+  // A manual play/stop or playlist switch during initialization takes precedence.
+  if (
+    (!smoke || startupSmoke) &&
+    library.settings.autoPlayOnLaunch &&
+    startupVideoId &&
+    library.playlist.some((video) => video.id === startupVideoId) &&
+    library.activePlaylistId === startupPlaylistId &&
+    generation === 0
+  )
+    await start(startupVideoId, true);
   if (smoke) {
     try {
       const result = await mainWindow.webContents.executeJavaScript(
         `(async () => { const s = await window.bilidesk.bootstrap(); await new Promise((resolve, reject) => { let count = 0; const check = () => { if (document.querySelector('h1')) resolve(); else if (++count > 100) reject(new Error('UI did not render')); else setTimeout(check, 30); }; check(); }); return { platform: s.platform, count: s.playlist.length, title: document.querySelector('h1')?.textContent, isolated: typeof require === 'undefined' }; })()`,
       );
       console.log('BILIDESK_SMOKE ' + JSON.stringify(result));
+      if (startupSmoke) {
+        await require(path.join(process.cwd(), 'scripts', 'startup-smoke.cjs')).verify({
+          scenario: startupSmoke,
+          getWindow: () => wallpaperWindow,
+          getPlayback: () => playback,
+          store,
+        });
+        app.exit(0);
+        return;
+      }
       // Isolated smoke data only; exercise the real IPC and persistence without account writes.
       library.playlist.push({
         id: 'BV17x411w7KC:1',

@@ -38,6 +38,7 @@ const state: Snapshot = {
     quality: 80,
     pauseOnBattery: true,
     launchAtLogin: false,
+    autoPlayOnLaunch: true,
   },
   profile: { mid: 123, name: '交互测试账号', avatar: '' },
   accountWarning: '',

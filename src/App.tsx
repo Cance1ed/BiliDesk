@@ -1002,6 +1002,25 @@ export default function App() {
               <h2>系统与性能</h2>
               <div className="setting-item">
                 <div>
+                  <Play size={20} />
+                  <span>
+                    <strong>启动后自动播放</strong>
+                    <small>默认开启；启动应用时播放当前列表的第一个视频，空列表不播放</small>
+                  </span>
+                </div>
+                <button
+                  className={`switch ${settings.autoPlayOnLaunch ? 'on' : ''}`}
+                  role="switch"
+                  aria-label="启动后自动播放"
+                  aria-checked={settings.autoPlayOnLaunch}
+                  disabled={!!busy}
+                  onClick={() => patchSettings({ autoPlayOnLaunch: !settings.autoPlayOnLaunch })}
+                >
+                  <span />
+                </button>
+              </div>
+              <div className="setting-item">
+                <div>
                   <Battery size={20} />
                   <span>
                     <strong>电池供电时暂停</strong>
@@ -1024,7 +1043,7 @@ export default function App() {
                   <Monitor size={20} />
                   <span>
                     <strong>开机启动</strong>
-                    <small>登录系统后在托盘中启动 BiliDesk，壁纸需手动启用</small>
+                    <small>登录系统后在托盘中启动 BiliDesk，播放行为遵循「启动后自动播放」</small>
                   </span>
                 </div>
                 <button

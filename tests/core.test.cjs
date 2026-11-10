@@ -54,6 +54,7 @@ test('invalid settings cannot cross IPC or be restored from disk', () => {
     { quality: 999 },
     { interval: -1 },
     { launchAtLogin: 'true' },
+    { autoPlayOnLaunch: 'false' },
     { portraitColumns: 1 },
     { portraitColumns: 99 },
     { portraitColumns: '3' },
@@ -62,6 +63,12 @@ test('invalid settings cannot cross IPC or be restored from disk', () => {
   assert.equal('unexpected' in validateSettings({ unexpected: 'ignored' }), false);
   assert.equal(validateSettings({}).portraitColumns, 0);
   assert.equal(validateSettings({ portraitColumns: 3 }).portraitColumns, 3);
+});
+test('startup playback defaults on for new and older settings while explicit opt-out is preserved', () => {
+  assert.equal(validateSettings().autoPlayOnLaunch, true);
+  assert.equal(validateSettings({ volume: 20, launchAtLogin: false }).autoPlayOnLaunch, true);
+  assert.equal(validateSettings({ autoPlayOnLaunch: false }).autoPlayOnLaunch, false);
+  assert.equal(validateSettings().launchAtLogin, false);
 });
 test('media allowlist disallows local-network and suffix-confusion targets', () => {
   assert.equal(isMediaUrl('https://upos-sz-mirrorcos.bilivideo.com/upgcxcode/file.m4s'), true);

@@ -20,6 +20,7 @@ export interface Settings {
   quality: number;
   pauseOnBattery: boolean;
   launchAtLogin: boolean;
+  autoPlayOnLaunch: boolean;
 }
 export interface Stream {
   video: string;

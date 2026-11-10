@@ -24,6 +24,7 @@ const initial: Snapshot = {
     quality: 80,
     pauseOnBattery: true,
     launchAtLogin: false,
+    autoPlayOnLaunch: true,
   },
   profile: null,
   accountWarning: '',

@@ -16,6 +16,9 @@ const child = spawn(
   [
     ...(packaged ? [] : ['.']),
     '--smoke-test',
+    ...process.argv
+      .filter((arg) => arg.startsWith('--startup='))
+      .map((arg) => arg.replace('--startup=', '--smoke-startup=')),
     ...(process.argv.includes('--playback') ? ['--smoke-playback'] : []),
     ...(process.argv.includes('--subscriptions') ? ['--smoke-subscriptions'] : []),
     ...(process.argv.includes('--portrait') ? ['--smoke-portrait'] : []),

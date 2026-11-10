@@ -12,12 +12,17 @@ test('queued atomic saves keep the newest settings and recover from corrupt data
     assert.deepEqual(initial.playlist, []);
     assert.deepEqual(initial.subscriptions, []);
     assert.equal(initial.cloudSync.enabled, false);
+    assert.equal(initial.settings.autoPlayOnLaunch, true);
     await Promise.all([
       store.save({ ...initial, settings: { ...initial.settings, volume: 20 } }),
-      store.save({ ...initial, settings: { ...initial.settings, volume: 70, portraitColumns: 4 } }),
+      store.save({
+        ...initial,
+        settings: { ...initial.settings, volume: 70, portraitColumns: 4, autoPlayOnLaunch: false },
+      }),
     ]);
     assert.equal((await store.load()).settings.volume, 70);
     assert.equal((await store.load()).settings.portraitColumns, 4);
+    assert.equal((await store.load()).settings.autoPlayOnLaunch, false);
     initial.cloudSync = { ownerMid: 123, folderId: 456, title: '云端壁纸', enabled: true, lastSyncAt: 12345 };
     initial.subscriptions = [
       {

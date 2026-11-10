@@ -14,6 +14,7 @@ const defaults = {
   quality: 80,
   pauseOnBattery: true,
   launchAtLogin: false,
+  autoPlayOnLaunch: true,
 };
 function parseVideoInput(input) {
   if (typeof input !== 'string' || input.length > 2048) throw new Error('视频链接格式不正确');
@@ -71,7 +72,11 @@ function validateSettings(input = {}) {
   if (!Number.isFinite(s.volume) || s.volume < 0 || s.volume > 100) throw new Error('音量应为 0–100');
   if (![0, 60, 300, 900, 1800].includes(s.interval)) throw new Error('无效轮播间隔');
   if (![32, 64, 80, 120].includes(s.quality)) throw new Error('无效清晰度');
-  if (typeof s.pauseOnBattery !== 'boolean' || typeof s.launchAtLogin !== 'boolean')
+  if (
+    typeof s.pauseOnBattery !== 'boolean' ||
+    typeof s.launchAtLogin !== 'boolean' ||
+    typeof s.autoPlayOnLaunch !== 'boolean'
+  )
     throw new Error('无效设置');
   return Object.fromEntries(Object.keys(defaults).map((k) => [k, s[k]]));
 }
