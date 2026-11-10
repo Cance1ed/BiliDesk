@@ -45,6 +45,8 @@ export const api: Bridge = window.bilidesk || {
   createFolder: desktopOnly,
   add: desktopOnly,
   remove: desktopOnly,
+  removeMany: desktopOnly,
+  move: desktopOnly,
   reorder: desktopOnly,
   settings: desktopOnly,
   qr: desktopOnly,

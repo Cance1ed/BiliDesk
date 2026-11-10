@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>Your favorite Bilibili videos, on your desktop.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.1">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.2">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
 </div>
 
 An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscriptions, collection imports, and synchronized portrait-video tiling. The current application interface is in Simplified Chinese.
@@ -19,6 +19,7 @@ An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscrip
 
 - **Anonymous playback:** BV/av IDs, video URLs, b23.tv short links, and specific video parts. Batch import, search, reorder, and deduplicate your playlist.
 - **Multiple playlists:** create, rename, copy, switch, and delete up to 20 local playlists. Each keeps its own videos, subscriptions, and cloud destination. Copies start with subscriptions and cloud sync disabled.
+- **Playlist editing (v0.6.2):** multi-select or select all search results, confirm batch deletion, and drag the left handle to reorder with automatic saving. Works in default and custom lists. Account favorites are never deleted; order is local. Up/down buttons remain available for keyboard use.
 - **Your account:** QR login, favorite-folder browsing, and selected-video or whole-folder imports.
 - **Favorite-folder subscriptions:** enter an owner's UID, profile URL, or folder URL; import existing videos and append new ones every 15 minutes, hour, 6 hours, or day. Public folders work without login.
 - **Subscribed collections:** browse collections saved by your account; import entire collections or select videos across pages.
@@ -35,18 +36,18 @@ Tiling uses actual video dimensions and preserves aspect ratio; slight cropping 
 
 ## Download & platform status
 
-**[Windows x64 v0.6.1](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.1)** · **[macOS Apple Silicon v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** — early previews; SHA-256 checksums are attached to each release. The original tested Windows v0.6.0 installer has also been added to its [release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0). The published Mac v0.6.0 binary does not include launch autoplay; the shared v0.6.1 source does, but has not yet been rebuilt or tested on Mac.
+**[Windows x64 v0.6.2](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.2)** · **[macOS Apple Silicon v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** — early previews; SHA-256 checksums are attached to each release. The original tested Windows v0.6.0 installer has also been added to its [release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0). The published Mac v0.6.0 binary does not include launch autoplay or the new playlist editing controls. Shared v0.6.2 source includes both, but has not yet been built or tested on Mac.
 
-| Platform                                    | Status                                                                                                                                    |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| macOS Apple Silicon                         | v0.6.0 DMG built and tested: desktop layering below Finder icons, playback, portrait tiling, subscriptions                                |
-| Windows 11 x64                              | v0.6.0 and v0.6.1 installers built and tested; playback, full desktop coverage, portrait tiling, subscriptions and v0.6.1 launch autoplay |
-| macOS Intel                                 | Not built or tested                                                                                                                       |
-| Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                                                                       |
+| Platform                                    | Status                                                                                                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| macOS Apple Silicon                         | v0.6.0 DMG built and tested: desktop layering below Finder icons, playback, portrait tiling, subscriptions                                   |
+| Windows 11 x64                              | v0.6.2 installer built and tested: batch deletion, drag sorting, persistence, autoplay, playback, desktop coverage, tiling and subscriptions |
+| macOS Intel                                 | Not built or tested                                                                                                                          |
+| Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                                                                          |
 
 Installers are unsigned, and the macOS app is not notarized. On first launch macOS reports that it cannot verify the app: open **System Settings → Privacy & Security**, click **Open Anyway** next to BiliDesk, and confirm. Exit the previous version from the tray before upgrading; local configuration is retained.
 
-**Windows verification (2026-11-10):** v0.6.0 passed 47 offline tests; v0.6.1 passed 48. Both packaged builds passed public subscription import (28 videos), real media playback, full 2560×1440 desktop coverage, and portrait tiling. The v0.6.1 package also passed enabled, disabled and empty-list startup scenarios without manually invoking Play. The new switch and its persisted opt-out were checked in the native Windows UI. See [verification details](docs/verification.md).
+**Windows verification (2026-11-10):** v0.6.2 passed all 51 offline tests and the production/NSIS build. The final packaged app passed public subscription import (28 videos), real playback, full 2560×1440 coverage, portrait tiling and all three startup scenarios. UI checks against the final packaged code verified pointer dragging in both directions, batch deletion/cancellation, filtered selection, independent custom lists and restart persistence at 1366×1000 and 940×700. Installer executable and app archive hashes match the tested payload. See [verification details and limits](docs/verification.md).
 
 ## Getting started
 
@@ -59,9 +60,17 @@ Installers are unsigned, and the macOS app is not notarized. On first launch mac
 
 Closing the management window keeps the app in the tray. Pause, skip, stop, or quit from the tray; stop/quit restores the underlying desktop.
 
+### Select, delete and reorder videos
+
+In the default or any custom playlist, tick the boxes beside videos, then choose **删除所选 (Delete selected)** and confirm. **全选 (Select all)** applies to the current search results; changing the search or switching lists clears selection. Deletion affects only the current local list. Deleting the currently playing item stops the wallpaper; account favorites are preserved.
+
+Drag the six-dot handle to the upper/lower half of a target row to insert before/after it. The insertion line shows the destination. Order saves automatically and is used by sequential playback after restarting, without interrupting the current video. Up/down buttons remain available for keyboard operation. Account favorite order is unchanged.
+
+![Batch selection and drag handles in the Windows v0.6.2 test build](docs/screenshot-playlist-edit-windows.png)
+
 ### Automatic playback on launch
 
-In v0.6.1, **播放设置 → 系统与性能 → 启动后自动播放** is on by default. On each app launch, the first video in the saved active playlist starts automatically using the saved playback settings. An empty list stays idle; adding its first video still requires **启用动态壁纸**. Disable the switch to keep startup manual; this choice persists. Manual stop and playlist switching do not trigger autoplay again during the same session. Existing battery, lock and sleep pause behavior remains in effect.
+Since v0.6.1, **播放设置 → 系统与性能 → 启动后自动播放** is on by default. On each app launch, the first video in the saved active playlist starts automatically using the saved playback settings. An empty list stays idle; adding its first video still requires **启用动态壁纸**. Disable the switch to keep startup manual; this choice persists. Manual stop and playlist switching do not trigger autoplay again during the same session. Existing battery, lock and sleep pause behavior remains in effect.
 
 **开机启动 (Launch at login)** remains off by default. If explicitly enabled, it starts the tray app at login and follows the separate autoplay setting. Playback does not resume at the previous timestamp.
 

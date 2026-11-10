@@ -51,6 +51,12 @@ macOS（Apple 芯片）：`release/BiliDesk-0.6.0-mac-arm64.dmg`，拖入「应�
 
 升级时原列表自动成为「默认播放列表」，首次保存前在数据目录保留 `library.before-multi-playlists.json` 原始备份；不丢弃旧视频、订阅记录或已配置的同步目标。
 
+### 多选删除与拖动排序（v0.6.2）
+
+默认列表与自定义列表的每一行左侧都有勾选框。选中多个视频后，点击「删除所选」并确认；「全选」选择当前显示的所有视频。搜索时变为「全选搜索结果」，修改搜索词或切换列表会清空选择，避免删除隐藏条目。删除只影响当前本地列表，其他列表和账号收藏夹不变；若删除当前正在播放的视频，壁纸会停止。
+
+按住行首的六点手柄，将视频拖到目标行的上半部或下半部，插入线表示将放到该行之前或之后，松手自动保存。上下移动按钮仍可通过键盘使用。顺序轮播采用保存后的顺序；拖动本身不会重启正在播放的视频，收藏夹同步不改变远端顺序。
+
 ## 本地开发
 
 需要 Node.js 24 和 npm。首次安装或启动时会下载 Electron 官方运行时。
@@ -83,7 +89,7 @@ npm run dist:mac   # 在 Mac 上生成本机 CPU 架构的 DMG
 
 macOS 请分别在 Apple Silicon 和 Intel Mac 上安装依赖并构建。原生依赖随本机架构安装，不建议直接复用另一架构的 node_modules。`.github/workflow-templates/desktop-builds.yml` 提供 Windows x64、macOS arm64、macOS x64 的构建模板，当前尚未启用；移入 .github/workflows/build.yml 并用具有 workflow 权限的凭据提交后，可手动触发或通过 v 开头的 Git tag 触发。工作流仅上传构建产物，不发布 Release。
 
-当前已在 Windows 11 上实际构建与验证。**尚未在 macOS 上构建或运行，也未签名、公证；没有交付已验证的 Mac 安装包。** Windows 包亦未配置商业代码签名。公开分发前需配置相应平台签名，并完成目标系统的兼容性验收。
+Windows v0.6.2 已在 Windows 11 x64 上构建与验证。macOS Apple Silicon 已有实测的 v0.6.0 DMG，但不包含后续自动播放和多选 / 拖动编辑功能；v0.6.2 尚未在 Mac 构建或实机验证。Windows 安装包未签名，Mac 包未公证。升级前请从托盘退出旧版。
 
 ## 实现与边界
 

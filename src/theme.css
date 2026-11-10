@@ -454,7 +454,7 @@ input[type='range']:active::-webkit-slider-thumb {
   transition: background-color 160ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .video-row:not(.current):hover {
+  .video-row:not(.current):not(.checked):hover {
     background: var(--fill-subtle);
   }
 }

@@ -2,6 +2,18 @@
 
 日期：2026-11-08。环境：Windows 11 x64，Node.js 24，Electron 45。
 
+## 0.6.2 Windows：多选删除与拖动排序
+
+日期：2026-11-10。Windows 11 x64，Node.js 24.15.0，Electron 45.2.3，独立测试目录。
+
+- `npm test` 全部 51 项通过，`npm run dist:win` 的 TypeScript / Vite 生产构建与 Windows x64 NSIS 打包通过。覆盖前后插入、首尾移动、无效目标、批量删除、重新读取顺序及其他列表 / 同步目标不变。
+- 最终打包程序 `node scripts/smoke.mjs --packaged --subscriptions --playback --portrait` 通过：批量删除、移动保留播放状态、删除当前播放项停止、拒绝过期列表 ID、磁盘持久化一致。删除场景的暂停状态为合成状态；同次回归另行验证真实联网播放。
+- 公开订阅导入 28 个视频；真实视频推进至 2.0757 秒 / 34 帧；原生客户区完整覆盖 2560×1440。竖屏自动三联采样均为 `[80,203,175,255]`，仅一个 video 元素；手动四联、关闭、暂停恢复与横屏回退通过。
+- 最终包 `--packaged --startup=enabled` 通过：缺少开关字段的旧配置默认自动播放第一项，无需手动调用 Play，推进至 2.1629 秒 / 35 帧。`--startup=disabled`、`--startup=empty` 均保持停止且不创建壁纸窗口。
+- Browser 插件不可用，使用已有 Playwright 和同版本 Electron 45.2.3 载入最终 `app.asar`，断言包版本为 0.6.2。1366×1000 和最小 940×700 窗口通过双向指针拖放、多选半选状态、取消 / 确认删除、搜索后仅选择当前结果、自定义列表隔离、全删空状态与重启恢复；无横向溢出、空白页、框架浮层或应用控制台错误。截图：`docs/screenshot-playlist-edit-windows.png`。
+- 从最终 NSIS 安装包提取 `BiliDesk.exe`、`resources/app.asar`，SHA-256 与实测 `win-unpacked` 产物完全一致。安装包 `BiliDesk-0.6.2-win-x64.exe`：124,775,172 字节，SHA-256 `dc3c0ea1681f6431ed5873a4ef38c1a8fc9a84a67dbc6ba1961bfc6e1c28cc98`。
+- 未操作个人账号。未覆盖：安装 / 卸载向导全流程、Windows 10、多屏混合 DPI、真实账号写入、macOS 0.6.2 构建和实机拖放。Windows 包未签名，Mac 0.6.0 发布附件保持不变。
+
 ## 0.6.1 默认启动自动播放
 
 日期：2026-11-10。环境：Windows 11 x64，Node.js 24.15.0，Electron 45.2.3。

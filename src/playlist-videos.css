@@ -1,0 +1,90 @@
+.playlist-edit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--label-3);
+}
+.playlist-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.playlist-check input,
+.playlist-row-check {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.playlist-drag-hint {
+  margin-left: auto;
+  color: var(--label-3);
+}
+.playlist-edit-status {
+  font-size: 12px;
+  color: var(--label-3);
+}
+.playlist-edit-status:not(:empty) {
+  margin-bottom: 10px;
+}
+.editable-video-list .video-row {
+  position: relative;
+  gap: 8px;
+}
+.editable-video-list .video-row.checked {
+  background: var(--accent-soft);
+}
+.editable-video-list .video-row.dragging {
+  opacity: 0.45;
+}
+.editable-video-list .video-row.drop-before::before,
+.editable-video-list .video-row.drop-after::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 1;
+}
+.editable-video-list .video-row.drop-before::before {
+  top: 0;
+}
+.editable-video-list .video-row.drop-after::after {
+  bottom: 0;
+}
+.playlist-drag-handle {
+  cursor: grab;
+  touch-action: none;
+}
+.playlist-drag-handle:active {
+  cursor: grabbing;
+}
+.playlist-drag-handle:disabled {
+  cursor: default;
+}
+@media (max-width: 1000px) {
+  .editable-video-list .thumbnail {
+    width: 72px;
+  }
+  .editable-video-list .row-number {
+    display: none;
+  }
+  .editable-video-list .video-select {
+    gap: 8px;
+  }
+  .editable-video-list .row-actions {
+    gap: 0;
+  }
+  .playlist-drag-hint {
+    width: 100%;
+    margin-left: 0;
+  }
+}

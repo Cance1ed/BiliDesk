@@ -107,8 +107,10 @@ export interface Bridge {
   deletePlaylist(id: string): Promise<void>;
   createFolder(value: { title: string; private: boolean }, playlistId: string): Promise<Folder>;
   add(text: string, playlistId?: string): Promise<AddResult>;
-  remove(id: string): Promise<void>;
-  reorder(id: string, direction: number): Promise<void>;
+  remove(id: string, playlistId?: string): Promise<void>;
+  removeMany(ids: string[], playlistId: string): Promise<void>;
+  move(id: string, targetId: string, position: 'before' | 'after', playlistId: string): Promise<void>;
+  reorder(id: string, direction: number, playlistId?: string): Promise<void>;
   settings(value: Settings): Promise<Snapshot>;
   qr(): Promise<{ url: string; qrcode_key: string }>;
   poll(key: string): Promise<{ code: number }>;

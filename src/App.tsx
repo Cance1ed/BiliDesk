@@ -16,10 +16,6 @@ import {
   Square,
   SkipForward,
   Info,
-  ArrowUp,
-  ArrowDown,
-  Trash2,
-  ExternalLink,
   X,
   LoaderCircle,
   Check,
@@ -44,6 +40,7 @@ import { Subscriptions } from './Subscriptions';
 import { Collections } from './Collections';
 import { CloudSyncPanel } from './CloudSyncPanel';
 import { PlaylistManager } from './PlaylistManager';
+import { PlaylistVideos } from './PlaylistVideos';
 
 const modes = { sequence: '顺序轮播', shuffle: '随机播放', single: '单曲循环' };
 const statusLabels: Record<string, string> = {
@@ -614,102 +611,21 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="video-list" data-stagger={query ? undefined : ''}>
-                  {filtered.length ? (
-                    filtered.map((video, index) => (
-                      <article
-                        className={`video-row ${selected?.id === video.id ? 'current' : ''}`}
-                        key={video.id}
-                        style={{ '--i': Math.min(index, 10) } as CSSProperties}
-                      >
-                        <button
-                          className="video-select"
-                          onClick={() => {
-                            clearPreview();
-                            setSelectedId(video.id);
-                          }}
-                          aria-label={`选择 ${video.title}`}
-                        >
-                          <span className="row-number">
-                            {state.playback.currentId === video.id && active ? (
-                              <span className="playing-bars">
-                                <i />
-                                <i />
-                                <i />
-                              </span>
-                            ) : (
-                              String(index + 1).padStart(2, '0')
-                            )}
-                          </span>
-                          <div className="thumbnail">
-                            <img src={video.cover} alt="" loading="lazy" />
-                            <span>{duration(video.duration)}</span>
-                          </div>
-                          <div className="video-copy">
-                            <h3>{video.title}</h3>
-                            <p>
-                              {video.owner}
-                              <span>·</span>
-                              {video.bvid}
-                              {video.page > 1 ? ` · P${video.page}` : ''}
-                            </p>
-                          </div>
-                        </button>
-                        <div className="row-actions">
-                          <button
-                            className="icon-button accent"
-                            title="点播并设为壁纸"
-                            aria-label={`播放 ${video.title}`}
-                            disabled={!!busy}
-                            onClick={() => void startVideo(video.id)}
-                          >
-                            <Play size={18} />
-                          </button>
-                          <button
-                            className="icon-button"
-                            title="上移"
-                            aria-label={`上移 ${video.title}`}
-                            disabled={!!busy || state.playlist.indexOf(video) === 0}
-                            onClick={() => void task('reorder', () => api.reorder(video.id, -1))}
-                          >
-                            <ArrowUp size={16} />
-                          </button>
-                          <button
-                            className="icon-button"
-                            title="下移"
-                            aria-label={`下移 ${video.title}`}
-                            disabled={!!busy || state.playlist.indexOf(video) === state.playlist.length - 1}
-                            onClick={() => void task('reorder', () => api.reorder(video.id, 1))}
-                          >
-                            <ArrowDown size={16} />
-                          </button>
-                          <button
-                            className="icon-button"
-                            title="在 Bilibili 打开"
-                            aria-label={`打开 ${video.title}`}
-                            onClick={() => void task('open', () => api.openVideo(video.id))}
-                          >
-                            <ExternalLink size={16} />
-                          </button>
-                          <button
-                            className="icon-button danger"
-                            title="从播放列表移除"
-                            aria-label={`移除 ${video.title}`}
-                            disabled={!!busy}
-                            onClick={() => {
-                              if (selected?.id === video.id) clearPreview();
-                              void task('remove', () => api.remove(video.id));
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </article>
-                    ))
-                  ) : (
-                    <div className="no-results">没有找到匹配的视频</div>
-                  )}
-                </div>
+                <PlaylistVideos
+                  key={state.activePlaylistId}
+                  state={state}
+                  filtered={filtered}
+                  query={query}
+                  selectedId={selected?.id}
+                  disabled={!!busy}
+                  task={task}
+                  select={(id) => {
+                    clearPreview();
+                    setSelectedId(id);
+                  }}
+                  play={startVideo}
+                  clearPreview={clearPreview}
+                />
               )}
             </section>
             <p className="footnote">

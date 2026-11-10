@@ -175,6 +175,17 @@ window.bilidesk = {
     state.playlist = state.playlist.filter((v) => v.id !== id);
     emit();
   },
+  removeMany: async (ids) => {
+    state.playlist = state.playlist.filter((v) => !ids.includes(v.id));
+    emit();
+  },
+  move: async (id, targetId, position) => {
+    const video = state.playlist.find((v) => v.id === id)!;
+    state.playlist = state.playlist.filter((v) => v.id !== id);
+    const index = state.playlist.findIndex((v) => v.id === targetId);
+    state.playlist.splice(index + (position === 'after' ? 1 : 0), 0, video);
+    emit();
+  },
   releasePreview: async () => {},
   qr: unavailable,
   poll: unavailable,

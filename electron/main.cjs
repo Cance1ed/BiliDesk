@@ -22,6 +22,7 @@ const { SubscriptionManager } = require('./subscriptions.cjs');
 const { CloudSync, normalizeCloudSync } = require('./cloud-sync.cjs');
 const { normalizeLibrary, activePlaylist, createPlaylist, renamePlaylist } = require('./library.cjs');
 const { createFavoriteFolder } = require('./favorite-folder.cjs');
+const { removeVideos, moveVideo } = require('./playlist-edit.cjs');
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -499,13 +500,31 @@ async function initialize() {
       adding = false;
     }
   });
-  handle('remove', async (id) => {
-    if (playback.currentId === id) stop();
-    library.playlist = library.playlist.filter((v) => v.id !== id);
+  const removeEntries = async (ids, playlistId) => {
+    assertPlaylist(playlistId);
+    if (changingPlaylist) throw new Error('正在切换播放列表，请稍后重试');
+    const remaining = removeVideos(library.playlist, ids);
+    if (ids.includes(playback.currentId)) stop();
+    library.playlist = remaining;
+    await save();
+    emit();
+  };
+  handle('remove', (id, playlistId) => removeEntries([id], playlistId));
+  handle('remove-many', (ids, playlistId) => {
+    if (typeof playlistId !== 'string') throw new Error('请选择播放列表');
+    return removeEntries(ids, playlistId);
+  });
+  handle('move', async (id, targetId, position, playlistId) => {
+    if (typeof playlistId !== 'string') throw new Error('请选择播放列表');
+    assertPlaylist(playlistId);
+    if (changingPlaylist) throw new Error('正在切换播放列表，请稍后重试');
+    library.playlist = moveVideo(library.playlist, id, targetId, position);
     await save();
     emit();
   });
-  handle('reorder', async (id, direction) => {
+  handle('reorder', async (id, direction, playlistId) => {
+    assertPlaylist(playlistId);
+    if (changingPlaylist) throw new Error('正在切换播放列表，请稍后重试');
     if (direction !== -1 && direction !== 1) throw new Error('无效排序');
     const index = library.playlist.findIndex((v) => v.id === id),
       target = index + direction;
@@ -794,6 +813,34 @@ async function initialize() {
       if (listDisk.playlists.length !== 1 || listDisk.playlist.length !== 0)
         throw new Error('Playlist IPC changes were not persisted');
       console.log('BILIDESK_PLAYLISTS ' + JSON.stringify({ ...listCheck, persisted: true }));
+      library.playlist = Array.from({ length: 5 }, (_, i) => ({
+        id: `BV17x411w7KC:${i + 1}`,
+        bvid: 'BV17x411w7KC',
+        cid: i + 1,
+        title: `Edit fixture ${i + 1}`,
+      }));
+      playback = { ...playback, status: 'paused', currentId: library.playlist[0].id };
+      await save();
+      const editCheck = await mainWindow.webContents.executeJavaScript(`(async()=>{
+        const api=window.bilidesk,check=(value,message)=>{if(!value)throw new Error(message);};
+        const original=await api.bootstrap(), ids=original.playlist.map(v=>v.id), list=original.activePlaylistId;
+        await api.move(ids[0],ids[4],'after',list);
+        let s=await api.bootstrap();
+        check(s.playlist[4].id===ids[0]&&s.playback.currentId===ids[0]&&s.playback.status==='paused','Move disturbed playback');
+        await api.removeMany([ids[1],ids[3]],list);
+        s=await api.bootstrap();check(s.playlist.map(v=>v.cid).join(',')==='3,5,1'&&s.playback.status==='paused','Batch removed wrong videos');
+        let stale=0;for(const action of [()=>api.removeMany([ids[0]],'stale'),()=>api.move(ids[0],ids[4],'before','stale')]){try{await action();}catch{stale++;}}
+        check(stale===2,'Stale edits accepted');
+        await api.removeMany([ids[0]],list);s=await api.bootstrap();
+        check(s.playback.status==='stopped'&&s.playlist.length===2,'Removing current video did not stop playback');
+        return {batch:true,dragOrder:true,playbackPreserved:true,currentRemovalStops:true,staleEditsBlocked:true};
+      })()`);
+      if ((await store.load()).playlist.map((v) => v.cid).join(',') !== '3,5')
+        throw new Error('Playlist edits were not persisted');
+      library.playlist = [];
+      await save();
+      emit();
+      console.log('BILIDESK_EDITS ' + JSON.stringify({ ...editCheck, persisted: true }));
       if (process.argv.includes('--smoke-subscriptions')) {
         const collection = await mainWindow.webContents.executeJavaScript(
           `window.bilidesk.collectionVideos(1227671,37737161,1)`,
