@@ -109,10 +109,17 @@ module.exports = async function checkVisibility({
       );
     }
     const frozen = progress.percent;
+    const frozenTransform = await execute(
+      `document.querySelector('.wallpaper-progress > div').style.transform`,
+    );
     await new Promise((r) => setTimeout(r, 250));
     assert.equal(
       await execute(`Number(document.querySelector('.wallpaper-progress').getAttribute('aria-valuenow'))`),
       frozen,
+    );
+    assert.equal(
+      await execute(`document.querySelector('.wallpaper-progress > div').style.transform`),
+      frozenTransform,
     );
     await load(stream('landscape'));
     await wait(
@@ -126,6 +133,20 @@ module.exports = async function checkVisibility({
     // Disabling just this option must resume its pause, preserving other pause sources.
     await settings({ pauseWhenDesktopHidden: false });
     await wait(() => getPlayback().status === 'playing', 'opt-out resumes');
+    const smoothProgress = await execute(`new Promise(resolve=>{
+      const v=document.querySelector('video'), fill=document.querySelector('.wallpaper-progress > div');
+      const values=new Set(); let timeUpdates=0, frames=0;
+      const count=()=>timeUpdates++; v.addEventListener('timeupdate',count);
+      const start=performance.now();
+      const sample=()=>{frames++;values.add(fill.style.transform);
+        if(performance.now()-start<500) requestAnimationFrame(sample);
+        else {v.removeEventListener('timeupdate',count);resolve({frames,changes:values.size,timeUpdates});}
+      }; requestAnimationFrame(sample);
+    })`);
+    assert.ok(
+      smoothProgress.changes >= 8 && smoothProgress.changes > smoothProgress.timeUpdates * 2,
+      'Progress still steps at timeupdate frequency: ' + JSON.stringify(smoothProgress),
+    );
     await api('await api.pause();');
     await settings({ pauseWhenDesktopHidden: true });
     cover.setFullScreen(false);
@@ -169,6 +190,7 @@ module.exports = async function checkVisibility({
           optOut: true,
           stopPreserved: true,
           progress,
+          smoothProgress,
           progressPaused: true,
           hiddenLoadPaused: true,
           progressTiled: true,

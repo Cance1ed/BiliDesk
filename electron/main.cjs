@@ -35,7 +35,11 @@ const devUrl = !app.isPackaged && process.env.BILIDESK_DEV_URL;
 const smoke = process.argv.includes('--smoke-test');
 const startupSmoke = smoke && process.argv.find((arg) => arg.startsWith('--smoke-startup='))?.split('=')[1];
 app.setPath('userData', path.join(app.getPath('appData'), 'BiliDesk'));
-if (smoke) app.setPath('userData', path.join(app.getPath('temp'), `bilidesk-smoke-${process.pid}`));
+if (smoke)
+  app.setPath(
+    'userData',
+    path.join(app.getPath('temp'), `bilidesk-smoke-${process.pid}-${randomBytes(6).toString('hex')}`),
+  );
 let mainWindow, wallpaperWindow, tray, store, bili, authSession, mediaSession, subscriptions, cloudSync;
 let library = normalizeLibrary();
 let profile = null,

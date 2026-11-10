@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>Your favorite Bilibili videos, on your desktop.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.3">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.4">Download preview</a> · <a href="#getting-started">Getting started</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">Report an issue</a></p>
 </div>
 
 An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscriptions, collection imports, and synchronized portrait-video tiling. The current application interface is in Simplified Chinese.
@@ -27,6 +27,7 @@ An Electron live-wallpaper app with Bilibili playlists, favorite-folder subscrip
 - **Portrait tiling:** automatically repeat portrait video across the desktop, typically three columns on a 16:9 display, or select 2–8 columns. All tiles share one decoded video and audio track.
 - **Native-feeling interface:** a macOS-style design that follows the system light/dark appearance, with a translucent sidebar on macOS and short, interruptible motion that respects Reduce Motion, Reduce Transparency, and Increase Contrast.
 - **Desktop controls:** sequential/shuffle/single looping, display selection, volume, fill/fit modes, timed switching, tray controls, lock/sleep pause, and optional battery pause.
+- **Smooth progress line (v0.6.4):** follows display refresh using the real media position, removing coarse progress steps. Pausing or buffering freezes the line; changing videos resets it. The line remains off by default.
 - **Visibility pause and top progress line (v0.6.3):** pause by default when maximized/fullscreen or multiple windows cover the wallpaper monitor's usable desktop, then continue at the same position when visible. Manual pauses are preserved. An optional 2-pixel progress line spans the wallpaper's top edge, off by default. Both settings are under Playback settings → System and performance. Windows tested; macOS implementation awaits device testing.
 
 ![Multiple playlists and new favorite folders, using simulated account data](docs/screenshot-playlists.png)
@@ -37,18 +38,18 @@ Tiling uses actual video dimensions and preserves aspect ratio; slight cropping 
 
 ## Download & platform status
 
-**[Windows x64 v0.6.3](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.3)** · **[macOS Apple Silicon v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** — early previews; SHA-256 checksums are attached to each release. The original tested Windows v0.6.0 installer has also been added to its [release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0). The published Mac v0.6.0 binary does not include launch autoplay, new playlist editing, visibility pause or the progress line. These features are in the shared v0.6.3 source, but the newer Mac version has not yet been built or tested.
+**[Windows x64 v0.6.4](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.4)** · **[macOS Apple Silicon v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)** — early previews; SHA-256 checksums are attached to each release. The original tested Windows v0.6.0 installer has also been added to its [release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0). The published Mac v0.6.0 binary does not include launch autoplay, new playlist editing, visibility pause or the progress line. These features are in the shared v0.6.4 source, but the newer Mac version has not yet been built or tested.
 
-| Platform                                    | Status                                                                                                                                        |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| macOS Apple Silicon                         | v0.6.0 DMG built and tested: desktop layering below Finder icons, playback, portrait tiling, subscriptions                                    |
-| Windows 11 x64                              | v0.6.3 installer built and tested: visibility pause/resume, top progress line, settings persistence, playlists, autoplay, playback and tiling |
-| macOS Intel                                 | Not built or tested                                                                                                                           |
-| Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                                                                           |
+| Platform                                    | Status                                                                                                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| macOS Apple Silicon                         | v0.6.0 DMG built and tested: desktop layering below Finder icons, playback, portrait tiling, subscriptions                                       |
+| Windows 11 x64                              | v0.6.4 installer built and tested: smooth progress line, visibility pause/resume, settings persistence, playlists, autoplay, playback and tiling |
+| macOS Intel                                 | Not built or tested                                                                                                                              |
+| Windows 10 / mixed-DPI multi-monitor setups | Not fully validated                                                                                                                              |
 
 Installers are unsigned, and the macOS app is not notarized. On first launch macOS reports that it cannot verify the app: open **System Settings → Privacy & Security**, click **Open Anyway** next to BiliDesk, and confirm. Exit the previous version from the tray before upgrading; local configuration is retained.
 
-**Windows verification (2026-11-10):** v0.6.3 passed 56 offline tests and the production/NSIS build. The final packaged app passed native maximized/fullscreen pause, resume at the same position, manual-pause and combined-block protection, plus progress line sizing, freezing, reset, tiling and opt-out checks. Both settings were verified against packaged code at 1366×1000 and 940×700 and persisted after restart. Public subscription import (28 videos), real playback, full 2560×1440 coverage, portrait tiling and all three startup scenarios passed. Installer executable and app archive hashes match the tested payload. See [verification details and limits](docs/verification.md).
+**Windows verification (2026-11-10):** v0.6.4 passed 56 offline tests and production/NSIS packaging. In a 500 ms packaged-video sample, the progress line changed on 181 of 181 sampled frames while only two `timeupdate` events occurred; the old implementation produced three positions in the equivalent regression. This is an observed test result, not a promised frame rate. Pause freezing, seek alignment, video reset, visibility pause/resume, tiling and disabling passed. Settings persistence, public subscriptions (28 videos), real playback, 2560×1440 coverage and all three startup scenarios also passed. Installer hashes match the tested payload. See [verification details and limits](docs/verification.md).
 
 ## Getting started
 
@@ -74,7 +75,7 @@ Drag the six-dot handle to the upper/lower half of a target row to insert before
 Open **播放设置 → 系统与性能 (Playback settings → System and performance)**:
 
 - **桌面被遮挡时暂停 (Pause when the desktop is covered)** defaults to on, including upgrades. Checks the wallpaper monitor about once per second. Maximized/fullscreen windows or several windows covering the usable desktop pause playback; partial coverage and windows on other monitors do not. Playback continues at the same position when visible, respecting manual pause/stop and other system pause conditions. Waking from sleep still refreshes the stream.
-- **壁纸顶部进度条 (Wallpaper top progress line)** defaults to off. Enable a 2-pixel line showing the current video's progress. It freezes on pause, resets for a new video, remains a single line during portrait tiling and never intercepts desktop clicks. It is a display, not a seek control.
+- **壁纸顶部进度条 (Wallpaper top progress line)** defaults to off. Enable a 2-pixel line showing the current video's progress. Since v0.6.4 it updates smoothly with display refresh, using actual media time rather than coarse time notifications. It freezes on pause, resets for a new video, remains a single line during portrait tiling and never intercepts desktop clicks. It is a display, not a seek control.
 
 Detection uses window state, bounds and opacity, not screenshots or window titles. Transparent/irregular windows are handled from system metadata rather than pixel-by-pixel coverage. Mixed-DPI multi-monitor setups, exclusive-fullscreen games and virtual-desktop switching still need device testing.
 

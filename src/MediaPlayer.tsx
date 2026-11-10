@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pause, Play } from 'lucide-react';
 import type { Settings, Stream } from './types';
 import { usePortraitTiling } from './usePortraitTiling';
+import { WallpaperProgress } from './WallpaperProgress';
 type Props = {
   stream: Stream;
   settings: Settings;
@@ -31,14 +32,14 @@ export function MediaPlayer({
   const [progress, setProgress] = useState({ time: 0, duration: 0, paused: false });
   const updateProgress = () => {
     const v = video.current;
-    if (v && (controls || progressBar))
+    if (v && controls)
       setProgress({
         time: v.currentTime,
         duration: Number.isFinite(v.duration) ? v.duration : 0,
         paused: v.paused,
       });
   };
-  useEffect(updateProgress, [progressBar, controls, stream.video]);
+  useEffect(updateProgress, [controls, stream.video]);
   const callbacks = useRef({ onPlaying, onEnded, onError });
   callbacks.current = { onPlaying, onEnded, onError };
   const playAudio = () => {
@@ -118,24 +119,7 @@ export function MediaPlayer({
         onError={() => callbacks.current.onError?.()}
       />
       <canvas ref={canvas} className="portrait-tiles" aria-hidden="true" />
-      {progressBar && (
-        <div
-          className="wallpaper-progress"
-          role="progressbar"
-          aria-label="当前视频进度"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(
-            progress.duration > 0 ? Math.min(1, Math.max(0, progress.time / progress.duration)) * 100 : 0,
-          )}
-        >
-          <div
-            style={{
-              transform: `scaleX(${progress.duration > 0 ? Math.min(1, Math.max(0, progress.time / progress.duration)) : 0})`,
-            }}
-          />
-        </div>
-      )}
+      {progressBar && <WallpaperProgress video={video} source={stream.video} />}
       {tiled && controls && (
         <div className="tiled-controls">
           <button
