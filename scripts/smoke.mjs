@@ -22,6 +22,7 @@ const child = spawn(
     ...(process.argv.includes('--playback') ? ['--smoke-playback'] : []),
     ...(process.argv.includes('--subscriptions') ? ['--smoke-subscriptions'] : []),
     ...(process.argv.includes('--portrait') ? ['--smoke-portrait'] : []),
+    ...(process.argv.includes('--visibility') ? ['--smoke-visibility'] : []),
   ],
   { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] },
 );

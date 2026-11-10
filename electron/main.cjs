@@ -23,6 +23,7 @@ const { CloudSync, normalizeCloudSync } = require('./cloud-sync.cjs');
 const { normalizeLibrary, activePlaylist, createPlaylist, renamePlaylist } = require('./library.cjs');
 const { createFavoriteFolder } = require('./favorite-folder.cjs');
 const { removeVideos, moveVideo } = require('./playlist-edit.cjs');
+const { isDesktopHidden, desktopVisibilitySnapshot } = require('./desktop-visibility.cjs');
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -49,12 +50,17 @@ let generation = 0,
   intervalTimer,
   healthTimer,
   loadingTimer,
+  visibilityTimer,
   validDesktop;
 let closing = false,
   failures = new Set(),
-  systemPaused = false;
+  systemPaused = false,
+  manualPaused = false,
+  refreshOnResume = false,
+  visibilityWarning = false;
 const mediaTokens = new Map();
 const systemBlocks = new Set();
+let visibilityProbe = isDesktopHidden;
 const mediaRequests = new Map();
 const root = path.join(__dirname, '..');
 const snapshot = () => ({
@@ -230,6 +236,8 @@ async function createWallpaper() {
       process.platform === 'win32' ? screen.dipToScreenRect(null, display.bounds) : display.bounds;
     validDesktop = attachDesktop(win, bounds);
     win.showInactive();
+    updateDesktopVisibility();
+    visibilityTimer = setInterval(updateDesktopVisibility, 1000);
     healthTimer = setInterval(() => {
       if (!validDesktop?.()) stop('桌面进程已重启，请重新启用动态壁纸');
     }, 5000);
@@ -248,8 +256,12 @@ function stop(error = '') {
   clearTimeout(intervalTimer);
   clearTimeout(loadingTimer);
   clearInterval(healthTimer);
+  clearInterval(visibilityTimer);
+  systemBlocks.delete('desktop-hidden');
   activeCommand = null;
   systemPaused = false;
+  manualPaused = false;
+  refreshOnResume = false;
   if (wallpaperWindow && !wallpaperWindow.isDestroyed()) wallpaperWindow.destroy();
   wallpaperWindow = null;
   clearTokens('wallpaper');
@@ -260,6 +272,7 @@ async function start(id, auto = false) {
   const video = library.playlist.find((v) => v.id === id) || (!id ? library.playlist[0] : null);
   if (!video) throw new Error('请先添加并选择一个视频');
   if (!auto) failures.clear();
+  manualPaused = false;
   const run = ++generation;
   clearTimeout(intervalTimer);
   clearTimeout(loadingTimer);
@@ -271,12 +284,15 @@ async function start(id, auto = false) {
     if (generation !== run) return;
     if (!wallpaperWindow) await createWallpaper();
     if (generation !== run) return;
-    activeCommand = { type: 'load', generation: run, stream, settings: library.settings };
+    updateDesktopVisibility();
+    const paused = manualPaused || systemBlocked();
+    systemPaused = paused && !manualPaused;
+    activeCommand = { type: 'load', generation: run, stream, settings: library.settings, paused };
     playback.quality = stream.quality;
+    if (paused) playback.status = 'paused';
     sendCommand(activeCommand);
-    loadingTimer = setTimeout(() => {
-      if (generation === run) handleFailure(new Error('视频加载超时，请检查网络后重试'));
-    }, 30000);
+    if (!paused) armLoadingTimeout(run);
+    emit();
   } catch (error) {
     if (generation === run) {
       if (auto) await handleFailure(error);
@@ -306,29 +322,74 @@ async function handleFailure(error) {
 function togglePause() {
   if (!wallpaperWindow || !['playing', 'paused'].includes(playback.status)) return;
   const resume = playback.status === 'paused';
+  manualPaused = !resume;
   systemPaused = false;
+  if (resume && systemBlocked()) {
+    systemPaused = true;
+    return;
+  }
   sendCommand({ type: resume ? 'resume' : 'pause' });
   playback.status = resume ? 'loading' : 'paused';
   clearTimeout(intervalTimer);
+  clearTimeout(loadingTimer);
+  if (resume) armLoadingTimeout(generation);
   emit();
 }
 function pauseForSystem() {
   if (!['playing', 'loading'].includes(playback.status)) return;
-  systemPaused = true;
+  systemPaused = !manualPaused;
   clearTimeout(intervalTimer);
   clearTimeout(loadingTimer);
   sendCommand({ type: 'pause' });
   playback.status = 'paused';
   emit();
 }
+function systemBlocked() {
+  return systemBlocks.size > 0 || (library.settings.pauseOnBattery && powerMonitor.isOnBatteryPower());
+}
+function armLoadingTimeout(run) {
+  clearTimeout(loadingTimer);
+  loadingTimer = setTimeout(() => {
+    if (generation === run) handleFailure(new Error('视频加载超时，请检查网络后重试'));
+  }, 30000);
+}
 function resumeForSystem() {
-  if (
-    systemPaused &&
-    systemBlocks.size === 0 &&
-    !(library.settings.pauseOnBattery && powerMonitor.isOnBatteryPower())
-  ) {
+  if (systemPaused && !manualPaused && !systemBlocked() && activeCommand && wallpaperWindow) {
     systemPaused = false;
-    if (wallpaperWindow) start(playback.currentId).catch(() => {});
+    if (refreshOnResume) {
+      refreshOnResume = false;
+      start(playback.currentId).catch(() => {});
+    } else {
+      playback.status = 'loading';
+      sendCommand({ type: 'resume' });
+      armLoadingTimeout(generation);
+      emit();
+    }
+  }
+}
+function updateDesktopVisibility() {
+  let hidden = false;
+  if (wallpaperWindow && !wallpaperWindow.isDestroyed() && library.settings.pauseWhenDesktopHidden) {
+    try {
+      const display =
+        screen.getAllDisplays().find((d) => String(d.id) === library.settings.displayId) ||
+        screen.getPrimaryDisplay();
+      const area =
+        process.platform === 'win32' ? screen.dipToScreenRect(null, display.workArea) : display.workArea;
+      hidden = visibilityProbe(wallpaperWindow, area);
+      visibilityWarning = false;
+    } catch (error) {
+      // An unavailable native query must not strand playback in an automatic pause.
+      if (!visibilityWarning) console.warn('Desktop visibility check unavailable:', error.message);
+      visibilityWarning = true;
+    }
+  }
+  if (hidden) {
+    systemBlocks.add('desktop-hidden');
+    pauseForSystem();
+  } else {
+    const wasHidden = systemBlocks.delete('desktop-hidden');
+    if (wasHidden) resumeForSystem();
   }
 }
 function assertMain(event) {
@@ -550,9 +611,11 @@ async function initialize() {
       stop();
       await start(id);
     } else {
+      if (activeCommand) activeCommand.settings = next;
       sendCommand({ type: 'settings', settings: next });
       scheduleAdvance();
     }
+    updateDesktopVisibility();
     if (next.pauseOnBattery && powerMonitor.isOnBatteryPower()) pauseForSystem();
     else if (!next.pauseOnBattery) resumeForSystem();
     emit();
@@ -680,7 +743,9 @@ async function initialize() {
   });
   ipcMain.handle('wallpaper:ready', (event) => {
     if (event.sender !== wallpaperWindow?.webContents) throw new Error('拒绝未知播放器');
-    return activeCommand;
+    return activeCommand
+      ? { ...activeCommand, paused: manualPaused || systemPaused || systemBlocked() }
+      : null;
   });
   ipcMain.on('wallpaper:report', (event, data) => {
     if (event.sender !== wallpaperWindow?.webContents || data?.generation !== generation) return;
@@ -689,18 +754,14 @@ async function initialize() {
       playback.status = 'playing';
       playback.error = '';
       failures.clear();
-      if (
-        systemPaused ||
-        systemBlocks.size > 0 ||
-        (library.settings.pauseOnBattery && powerMonitor.isOnBatteryPower())
-      )
-        pauseForSystem();
+      if (manualPaused || systemPaused || systemBlocked()) pauseForSystem();
       else {
         scheduleAdvance();
         emit();
       }
-    } else if (data.type === 'ended') advance().catch(handleFailure);
-    else if (data.type === 'error')
+    } else if (data.type === 'ended') {
+      if (!manualPaused && !systemPaused && !systemBlocked()) advance().catch(handleFailure);
+    } else if (data.type === 'error')
       handleFailure(new Error('视频播放失败，地址可能已过期或网络中断')).catch((error) =>
         stop(error.message),
       );
@@ -725,6 +786,7 @@ async function initialize() {
     pauseForSystem();
   });
   powerMonitor.on('suspend', () => {
+    refreshOnResume = true;
     systemBlocks.add('sleep');
     pauseForSystem();
   });
@@ -899,7 +961,7 @@ async function initialize() {
             }),
         );
         await mainWindow.webContents.executeJavaScript(
-          `(async () => { const s = await window.bilidesk.bootstrap(); await window.bilidesk.settings({ ...s.settings, pauseOnBattery: false }); await window.bilidesk.start(s.playlist[0].id); })()`,
+          `(async () => { const s = await window.bilidesk.bootstrap(); await window.bilidesk.settings({ ...s.settings, pauseOnBattery: false, pauseWhenDesktopHidden: false }); await window.bilidesk.start(s.playlist[0].id); })()`,
         );
         let frames = null;
         for (let i = 0; i < 150; i++) {
@@ -947,7 +1009,54 @@ async function initialize() {
         );
         if ((await store.load()).playlist.length !== 0) throw new Error('Playlist removal was not persisted');
       }
+      if (process.argv.includes('--smoke-visibility')) {
+        for (const event of ['display-added', 'display-removed', 'display-metrics-changed'])
+          screen.removeListener(event, displayChanged);
+        await require(path.join(process.cwd(), 'scripts', 'visibility-smoke.cjs'))({
+          mainWindow,
+          getWindow: () => wallpaperWindow,
+          getPlayback: () => playback,
+          nativeSnapshot: desktopVisibilitySnapshot,
+          setProbe: (probe) => {
+            visibilityProbe = probe;
+          },
+          updateVisibility: updateDesktopVisibility,
+          setBlock: (reason, blocked) => {
+            if (blocked) {
+              systemBlocks.add(reason);
+              pauseForSystem();
+            } else {
+              systemBlocks.delete(reason);
+              resumeForSystem();
+            }
+          },
+          load: async (stream) => {
+            if (!wallpaperWindow) await createWallpaper();
+            const run = ++generation;
+            manualPaused = false;
+            systemPaused = systemBlocked();
+            playback = {
+              status: systemPaused ? 'paused' : 'loading',
+              currentId: 'visibility-fixture',
+              error: '',
+              quality: 0,
+            };
+            activeCommand = {
+              type: 'load',
+              generation: run,
+              stream,
+              settings: library.settings,
+              paused: systemPaused,
+            };
+            sendCommand(activeCommand);
+            emit();
+          },
+        });
+        stop();
+        visibilityProbe = isDesktopHidden;
+      }
       if (process.argv.includes('--smoke-portrait')) {
+        library.settings.pauseWhenDesktopHidden = false;
         // Synthetic playback has no library item to re-open on transient desktop work-area events.
         for (const event of ['display-added', 'display-removed', 'display-metrics-changed'])
           screen.removeListener(event, displayChanged);
@@ -992,5 +1101,6 @@ app.on('before-quit', () => {
   clearTimeout(intervalTimer);
   clearTimeout(loadingTimer);
   clearInterval(healthTimer);
+  clearInterval(visibilityTimer);
   wallpaperWindow?.destroy();
 });

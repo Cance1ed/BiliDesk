@@ -10,7 +10,11 @@ async function seed(store, scenario) {
   const playlist = scenario === 'empty' ? [] : [await client.resolve('av170001')];
   // Omit the setting in enabled mode to exercise upgrade migration, not just a fresh explicit true.
   await store.save({
-    settings: { pauseOnBattery: false, ...(scenario === 'disabled' ? { autoPlayOnLaunch: false } : {}) },
+    settings: {
+      pauseOnBattery: false,
+      pauseWhenDesktopHidden: false,
+      ...(scenario === 'disabled' ? { autoPlayOnLaunch: false } : {}),
+    },
     playlist,
   });
 }

@@ -7,6 +7,7 @@ type Props = {
   settings: Settings;
   paused?: boolean;
   controls?: boolean;
+  progressBar?: boolean;
   onPlaying?: () => void;
   onEnded?: () => void;
   onError?: () => void;
@@ -16,6 +17,7 @@ export function MediaPlayer({
   settings,
   paused = false,
   controls = false,
+  progressBar = false,
   onPlaying,
   onEnded,
   onError,
@@ -29,13 +31,14 @@ export function MediaPlayer({
   const [progress, setProgress] = useState({ time: 0, duration: 0, paused: false });
   const updateProgress = () => {
     const v = video.current;
-    if (v && controls)
+    if (v && (controls || progressBar))
       setProgress({
         time: v.currentTime,
         duration: Number.isFinite(v.duration) ? v.duration : 0,
         paused: v.paused,
       });
   };
+  useEffect(updateProgress, [progressBar, controls, stream.video]);
   const callbacks = useRef({ onPlaying, onEnded, onError });
   callbacks.current = { onPlaying, onEnded, onError };
   const playAudio = () => {
@@ -93,6 +96,7 @@ export function MediaPlayer({
         onSeeking={() => {
           if (audio.current && video.current) audio.current.currentTime = video.current.currentTime;
         }}
+        onSeeked={updateProgress}
         onTimeUpdate={() => {
           updateProgress();
           const a = audio.current,
@@ -114,6 +118,24 @@ export function MediaPlayer({
         onError={() => callbacks.current.onError?.()}
       />
       <canvas ref={canvas} className="portrait-tiles" aria-hidden="true" />
+      {progressBar && (
+        <div
+          className="wallpaper-progress"
+          role="progressbar"
+          aria-label="当前视频进度"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(
+            progress.duration > 0 ? Math.min(1, Math.max(0, progress.time / progress.duration)) * 100 : 0,
+          )}
+        >
+          <div
+            style={{
+              transform: `scaleX(${progress.duration > 0 ? Math.min(1, Math.max(0, progress.time / progress.duration)) : 0})`,
+            }}
+          />
+        </div>
+      )}
       {tiled && controls && (
         <div className="tiled-controls">
           <button

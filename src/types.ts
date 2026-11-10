@@ -21,6 +21,8 @@ export interface Settings {
   pauseOnBattery: boolean;
   launchAtLogin: boolean;
   autoPlayOnLaunch: boolean;
+  pauseWhenDesktopHidden: boolean;
+  showProgressBar: boolean;
 }
 export interface Stream {
   video: string;
@@ -143,6 +145,7 @@ export interface Bridge {
 export type WallpaperCommand = {
   type: 'load' | 'pause' | 'resume' | 'settings';
   generation?: number;
+  paused?: boolean;
   stream?: Stream;
   settings?: Settings;
 };

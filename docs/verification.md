@@ -2,6 +2,19 @@
 
 日期：2026-11-08。环境：Windows 11 x64，Node.js 24，Electron 45。
 
+## 0.6.3 Windows：桌面遮挡暂停与顶部进度条
+
+日期：2026-11-10。Windows 11 x64，Electron 45.2.3。测试均使用隔离数据。
+
+- 56 项测试、TypeScript / Vite 生产构建与 Windows x64 NSIS 打包通过。遮挡暂停默认 true，进度条默认 false；旧配置迁移、非法类型、设置持久化已验证。几何测试覆盖最大化 / 全屏、多个窗口拼合、重叠但未全覆盖、负坐标副屏与物理 DPI 大小。
+- 最终包 `node scripts/smoke.mjs --packaged --visibility` 通过：创建真实 Windows 窗口，使用原生可见性与边界；为避免用户其他窗口干扰，覆盖计算仅纳入测试窗口。最大化 / 全屏暂停、最小化后原进度继续、小窗口不暂停、关闭选项恢复、手动暂停与停止不被可见性变化解除、与模拟锁屏条件叠加均通过。桌面被覆盖时加载新视频保持暂停。
+- 进度条真实渲染为顶部 2 CSS px、全宽 2560、pointer-events none，暂停时进度冻结；跳转后进度为 58%，与视频时间 / 时长一致；换视频归零、竖屏三联仅一条、关闭后移除均通过。
+- Playwright 使用同版本 Electron 45.2.3 载入最终 `app.asar`，断言版本为 0.6.3：1366×1000、940×700 下两个开关默认值正确，改变后重启可恢复选择，无横向溢出、空白页、框架浮层或应用控制台错误。Browser 插件不可用，使用已有 Playwright。
+- 最终包 `--packaged --subscriptions --playback --portrait` 回归通过：公开订阅导入 28 个视频，真实公开视频推进至 2.1448 秒 / 35 帧，2560×1440 完整覆盖，三联 / 四联、暂停恢复与横屏回退正常。启动开启 / 关闭 / 空列表三场景通过，最终包开启场景推进至 2.1218 秒 / 34 帧。这些基础回归显式关闭遮挡暂停，避免宿主桌面影响；新选项由独立原生窗口场景覆盖。
+- 实现参考：[Windows DWM 可见边界与 Cloaked 属性](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)、[Apple 窗口遮挡状态](https://developer.apple.com/documentation/appkit/nswindow/occlusionstate-swift.property)、[CGWindowListCopyWindowInfo](<https://developer.apple.com/documentation/coregraphics/cgwindowlistcopywindowinfo(_:_:)>)。只读取窗口状态、范围及透明度，不读取窗口标题或截图。
+- 从最终安装包提取 `BiliDesk.exe` 与 `resources/app.asar`，哈希均与实测 `win-unpacked` 一致。`BiliDesk-0.6.3-win-x64.exe` 为 124,778,335 字节，SHA-256：`b2b62fe1a826b95855621a43fba3a08f83c68e7d8d387ce587a8aa27f64ce827`。新开关截图见 `docs/screenshot-visibility-windows.png`。
+- Windows 包未签名；未测试安装向导全流程、Windows 10、真实账号写入、macOS 新逻辑、多显示器混合 DPI 实机、独占全屏游戏和真实虚拟桌面切换。透明 / 异形窗口按系统几何及透明度判断，不做逐像素遮挡检测。
+
 ## 0.6.2 Windows：多选删除与拖动排序
 
 日期：2026-11-10。Windows 11 x64，Node.js 24.15.0，Electron 45.2.3，独立测试目录。

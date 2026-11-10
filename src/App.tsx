@@ -918,6 +918,46 @@ export default function App() {
               <h2>系统与性能</h2>
               <div className="setting-item">
                 <div>
+                  <Pause size={20} />
+                  <span>
+                    <strong>桌面被遮挡时暂停</strong>
+                    <small>
+                      默认开启；壁纸所在屏幕被最大化、全屏或其他窗口完全覆盖时暂停，重新可见后继续
+                    </small>
+                  </span>
+                </div>
+                <button
+                  className={`switch ${settings.pauseWhenDesktopHidden ? 'on' : ''}`}
+                  role="switch"
+                  aria-label="桌面被遮挡时暂停"
+                  aria-checked={settings.pauseWhenDesktopHidden}
+                  disabled={!!busy}
+                  onClick={() => patchSettings({ pauseWhenDesktopHidden: !settings.pauseWhenDesktopHidden })}
+                >
+                  <span />
+                </button>
+              </div>
+              <div className="setting-item">
+                <div>
+                  <Clock3 size={20} />
+                  <span>
+                    <strong>壁纸顶部进度条</strong>
+                    <small>默认关闭；在壁纸顶部显示当前视频的 2 像素细进度线，不影响桌面点击</small>
+                  </span>
+                </div>
+                <button
+                  className={`switch ${settings.showProgressBar ? 'on' : ''}`}
+                  role="switch"
+                  aria-label="壁纸顶部进度条"
+                  aria-checked={settings.showProgressBar}
+                  disabled={!!busy}
+                  onClick={() => patchSettings({ showProgressBar: !settings.showProgressBar })}
+                >
+                  <span />
+                </button>
+              </div>
+              <div className="setting-item">
+                <div>
                   <Play size={20} />
                   <span>
                     <strong>启动后自动播放</strong>

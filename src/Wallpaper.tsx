@@ -8,7 +8,7 @@ export default function Wallpaper() {
     const receive = (command: WallpaperCommand) => {
       if (command.type === 'load') {
         setCurrent(command);
-        setPaused(false);
+        setPaused(command.paused ?? false);
       }
       if (command.type === 'settings')
         setCurrent((old) => (old ? { ...old, settings: command.settings } : old));
@@ -30,6 +30,7 @@ export default function Wallpaper() {
           stream={current.stream}
           settings={current.settings}
           paused={paused}
+          progressBar={current.settings.showProgressBar}
           onPlaying={() => report('playing')}
           onEnded={() => report('ended')}
           onError={() => report('error')}

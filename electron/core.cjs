@@ -15,6 +15,8 @@ const defaults = {
   pauseOnBattery: true,
   launchAtLogin: false,
   autoPlayOnLaunch: true,
+  pauseWhenDesktopHidden: true,
+  showProgressBar: false,
 };
 function parseVideoInput(input) {
   if (typeof input !== 'string' || input.length > 2048) throw new Error('视频链接格式不正确');
@@ -75,7 +77,9 @@ function validateSettings(input = {}) {
   if (
     typeof s.pauseOnBattery !== 'boolean' ||
     typeof s.launchAtLogin !== 'boolean' ||
-    typeof s.autoPlayOnLaunch !== 'boolean'
+    typeof s.autoPlayOnLaunch !== 'boolean' ||
+    typeof s.pauseWhenDesktopHidden !== 'boolean' ||
+    typeof s.showProgressBar !== 'boolean'
   )
     throw new Error('无效设置');
   return Object.fromEntries(Object.keys(defaults).map((k) => [k, s[k]]));

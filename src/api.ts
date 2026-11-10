@@ -25,6 +25,8 @@ const initial: Snapshot = {
     pauseOnBattery: true,
     launchAtLogin: false,
     autoPlayOnLaunch: true,
+    pauseWhenDesktopHidden: true,
+    showProgressBar: false,
   },
   profile: null,
   accountWarning: '',

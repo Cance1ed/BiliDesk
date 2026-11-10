@@ -39,6 +39,8 @@ const state: Snapshot = {
     pauseOnBattery: true,
     launchAtLogin: false,
     autoPlayOnLaunch: true,
+    pauseWhenDesktopHidden: true,
+    showProgressBar: false,
   },
   profile: { mid: 123, name: '交互测试账号', avatar: '' },
   accountWarning: '',

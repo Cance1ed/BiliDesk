@@ -46,6 +46,8 @@ function Fixture() {
             pauseOnBattery: true,
             launchAtLogin: false,
             autoPlayOnLaunch: true,
+            pauseWhenDesktopHidden: true,
+            showProgressBar: false,
           }}
           paused={paused}
           controls

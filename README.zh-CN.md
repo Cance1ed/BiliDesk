@@ -3,7 +3,7 @@
   <h1>BiliDesk</h1>
   <p>让喜欢的 Bilibili 视频，成为桌面的风景。</p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.2">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
+  <p><a href="https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.3">下载预览版</a> · <a href="#快速开始">快速开始</a> · <a href="https://github.com/Cance1ed/BiliDesk/issues">反馈问题</a></p>
 </div>
 
 基于 Electron 的动态壁纸应用，支持 Bilibili 播放列表、收藏夹订阅、合集导入和同步竖屏三联 / N 联效果。当前应用界面为简体中文。
@@ -27,6 +27,7 @@
 - **竖屏自动联屏**：普通 16:9 屏幕上自动三联，也可指定 2～8 联；各列共用一个视频解码器和一份声音。
 - **原生质感界面**：macOS 风格设计，跟随系统浅色 / 深色外观；macOS 上侧栏为半透明材质；动效短促、可随时打断，并遵循「减弱动态效果」「降低透明度」「增强对比度」设置。
 - **桌面控制**：顺序 / 随机 / 单曲循环，屏幕选择、音量、画面适配、定时切换、托盘控制、锁屏 / 睡眠暂停、可选电池暂停。
+- **遮挡暂停与顶部进度线（v0.6.3）**：默认在最大化、全屏或多个窗口完全覆盖壁纸所在屏幕的工作区域时暂停，重新可见后从原进度继续；保留手动暂停。可选顶部 2 像素细进度线，默认关闭。两个开关位于「播放设置 → 系统与性能」。已实测 Windows，macOS 实现待实机验证。
 
 ![多播放列表与新建收藏夹，使用模拟账号数据](docs/screenshot-playlists.png)
 
@@ -36,18 +37,18 @@
 
 ## 下载与平台状态
 
-**[Windows x64 v0.6.2](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.2)** · **[macOS（Apple 芯片）v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)**：早期预览版，各 Release 均附 SHA-256 校验文件。原始测试通过的 Windows v0.6.0 安装包也已补充至[对应 Release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)。已发布的 Mac v0.6.0 包不含启动自动播放及新增列表编辑功能；共享的 v0.6.2 源码已包含两者，但尚未在 Mac 上重新构建和验证。
+**[Windows x64 v0.6.3](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.3)** · **[macOS（Apple 芯片）v0.6.0](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)**：早期预览版，各 Release 均附 SHA-256 校验文件。原始测试通过的 Windows v0.6.0 安装包也已补充至[对应 Release](https://github.com/Cance1ed/BiliDesk/releases/tag/v0.6.0)。已发布的 Mac v0.6.0 包不含启动自动播放、新增列表编辑、遮挡暂停和顶部进度线；共享的 v0.6.3 源码已包含这些功能，但尚未在 Mac 上重新构建和验证。
 
-| 平台                      | 状态                                                                                      |
-| ------------------------- | ----------------------------------------------------------------------------------------- |
-| macOS Apple 芯片          | v0.6.0 DMG 已构建并实测：壁纸位于桌面图标之下、播放、竖屏联屏、收藏夹订阅                 |
-| Windows 11 x64            | v0.6.2 安装包已构建并实测：批量删除、拖动排序、重启保存、自动播放、桌面全覆盖、联屏与订阅 |
-| macOS Intel               | 尚未构建和测试                                                                            |
-| Windows 10 / 多屏混合 DPI | 尚未完整验证                                                                              |
+| 平台                      | 状态                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| macOS Apple 芯片          | v0.6.0 DMG 已构建并实测：壁纸位于桌面图标之下、播放、竖屏联屏、收藏夹订阅                  |
+| Windows 11 x64            | v0.6.3 安装包已构建并实测：遮挡暂停 / 恢复、顶部进度线、设置保存、列表编辑、自动播放与联屏 |
+| macOS Intel               | 尚未构建和测试                                                                             |
+| Windows 10 / 多屏混合 DPI | 尚未完整验证                                                                               |
 
 安装包未签名，macOS 版未经公证。首次打开时 macOS 会提示无法验证该 App：前往「系统设置 → 隐私与安全性」，在 BiliDesk 旁点「仍要打开」并确认。升级前从托盘退出旧版，本机配置会保留。
 
-**Windows 验证（2026-11-10）**：v0.6.2 通过全部 51 项离线测试及生产 / NSIS 构建。最终打包程序通过公开订阅导入（28 个视频）、真实播放、2560×1440 桌面全覆盖、竖屏联屏及三种启动场景。最终打包代码的界面在 1366×1000 和 940×700 下通过双向指针拖放、批量删除 / 取消、搜索范围选择、自定义列表隔离及重启保存。安装包内程序和应用归档哈希与测试产物一致。详见[验证记录及边界](docs/verification.md)。
+**Windows 验证（2026-11-10）**：v0.6.3 通过 56 项离线测试及生产 / NSIS 构建。最终打包程序通过原生最大化 / 全屏暂停、原进度恢复、手动暂停和组合条件保护，以及进度线尺寸、冻结、重置、联屏和关闭检查。两个开关在最终打包代码的 1366×1000、940×700 界面验证通过，重启后保留选择；公开订阅导入（28 个视频）、真实播放、2560×1440 全覆盖、竖屏联屏和三种启动场景均通过。安装包内程序及归档哈希与测试产物一致。详见[验证记录及边界](docs/verification.md)。
 
 ## 快速开始
 
@@ -67,6 +68,17 @@
 按住左侧六点手柄，拖到目标行上半部或下半部，按插入线提示放到之前或之后。顺序自动保存，重启后保留，顺序轮播会使用此顺序；拖动本身不打断当前播放。也可通过上下移动按钮使用键盘排序，账号收藏夹顺序不变。
 
 ![Windows v0.6.2 测试实例中的多选与拖动手柄](docs/screenshot-playlist-edit-windows.png)
+
+### 遮挡暂停与顶部进度条
+
+在「播放设置 → 系统与性能」中设置：
+
+- **桌面被遮挡时暂停**默认开启，旧配置升级后也开启。约每秒检查壁纸所在屏幕，最大化、全屏或多个窗口覆盖整个工作区域时暂停；部分遮挡、其他屏幕窗口不触发。重新可见后从原进度继续，并保留手动暂停 / 停止及其他系统暂停条件。睡眠唤醒仍沿用重新取流策略。
+- **壁纸顶部进度条**默认关闭。开启后显示 2 像素细线，暂停时冻结、换视频归零，竖屏联屏只显示一条；不拦截桌面点击，不提供拖动跳转。
+
+检测只使用窗口状态、范围与透明度，不读取窗口标题或截图；透明 / 异形窗口不逐像素判断。多显示器混合 DPI、独占全屏游戏及虚拟桌面切换仍待实机验证。
+
+![Windows v0.6.3 遮挡暂停与进度条设置](docs/screenshot-visibility-windows.png)
 
 ### 启动后自动播放
 
@@ -116,6 +128,7 @@ node scripts/smoke.mjs --packaged --playback --portrait
 node scripts/smoke.mjs --packaged --startup=enabled
 node scripts/smoke.mjs --packaged --startup=disabled
 node scripts/smoke.mjs --packaged --startup=empty
+node scripts/smoke.mjs --packaged --visibility # Windows 原生遮挡 / 进度条回归
 ```
 
 联网 / 播放测试使用公开 Bilibili 内容及隔离临时数据，会短暂挂载壁纸并在结束后恢复桌面。竖屏测试使用原创本地合成视频。打包测试需先构建安装包，并从仓库根目录执行；构建输出不在 `release/` 时设置 `BILIDESK_RELEASE_DIR`。在 macOS 上，播放测试还会检查壁纸窗口位于桌面与桌面图标之间。

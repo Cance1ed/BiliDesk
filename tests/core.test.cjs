@@ -55,6 +55,8 @@ test('invalid settings cannot cross IPC or be restored from disk', () => {
     { interval: -1 },
     { launchAtLogin: 'true' },
     { autoPlayOnLaunch: 'false' },
+    { pauseWhenDesktopHidden: 'true' },
+    { showProgressBar: 1 },
     { portraitColumns: 1 },
     { portraitColumns: 99 },
     { portraitColumns: '3' },
@@ -70,6 +72,16 @@ test('startup playback defaults on for new and older settings while explicit opt
   assert.equal(validateSettings({ autoPlayOnLaunch: false }).autoPlayOnLaunch, false);
   assert.equal(validateSettings().launchAtLogin, false);
 });
+test('visibility pause defaults on and progress defaults off, with explicit choices retained', () => {
+  for (const settings of [undefined, {}, { volume: 20 }]) {
+    assert.equal(validateSettings(settings).pauseWhenDesktopHidden, true);
+    assert.equal(validateSettings(settings).showProgressBar, false);
+  }
+  const saved = validateSettings({ pauseWhenDesktopHidden: false, showProgressBar: true });
+  assert.equal(saved.pauseWhenDesktopHidden, false);
+  assert.equal(saved.showProgressBar, true);
+});
+
 test('media allowlist disallows local-network and suffix-confusion targets', () => {
   assert.equal(isMediaUrl('https://upos-sz-mirrorcos.bilivideo.com/upgcxcode/file.m4s'), true);
   for (const value of [
